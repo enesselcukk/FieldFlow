@@ -21,3 +21,8 @@ dependencyResolutionManagement {
 
 rootProject.name = "FieldFlow"
 include(":app")
+include(":core")
+include(":data")
+include(":presentation")
+include(":domain")
+include(":utils")

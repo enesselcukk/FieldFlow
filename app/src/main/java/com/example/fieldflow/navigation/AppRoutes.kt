@@ -16,4 +16,7 @@ data class ActivationRoute(
 ) : NavKey
 
 @Serializable
+data object BiometricRoute : NavKey
+
+@Serializable
 data object HomeRoute : NavKey

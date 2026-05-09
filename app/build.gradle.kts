@@ -80,6 +80,7 @@ dependencies {
 
     // DataStore
     implementation(libs.datastore.preferences)
+    implementation(libs.biometric)
 
     // Test
     testImplementation(libs.junit)

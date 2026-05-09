@@ -9,7 +9,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
@@ -17,11 +21,13 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.example.fieldflow.activation.AppActivationStore
 import com.example.fieldflow.navigation.ActivationRoute
+import com.example.fieldflow.navigation.BiometricRoute
 import com.example.fieldflow.navigation.HomeRoute
 import com.example.fieldflow.navigation.ScanRoute
 import com.example.fieldflow.navigation.SplashRoute
 import com.example.fieldflow.ui.theme.FieldFlowTheme
 import com.example.presentation.auth.ActivationCodeScreen
+import com.example.presentation.auth.BiometricAuthScreen
 import com.example.presentation.auth.IdScanScreen
 import com.example.presentation.home.HomeScreen
 import kotlinx.coroutines.launch
@@ -36,12 +42,16 @@ class MainActivity : ComponentActivity() {
             FieldFlowTheme {
                 val scope = rememberCoroutineScope()
                 val backStack = rememberNavBackStack(SplashRoute)
+                var isBiometricVerified by remember { mutableStateOf(false) }
 
                 LaunchedEffect(Unit) {
                     activationStore.isActivated.collect { activated ->
-                        if (activated && backStack.lastOrNull() != HomeRoute) {
+                        if (activated && isBiometricVerified && backStack.lastOrNull() != HomeRoute) {
                             backStack.clear()
                             backStack.add(HomeRoute)
+                        } else if (activated && !isBiometricVerified && backStack.lastOrNull() != BiometricRoute) {
+                            backStack.clear()
+                            backStack.add(BiometricRoute)
                         } else if (!activated && backStack.lastOrNull() == SplashRoute) {
                             backStack.clear()
                             backStack.add(ScanRoute)
@@ -78,6 +88,7 @@ class MainActivity : ComponentActivity() {
                             ActivationCodeScreen(
                                 expectedCode = ACTIVATION_CODE,
                                 onActivationSuccess = {
+                                    isBiometricVerified = true
                                     scope.launch {
                                         activationStore.setActivated(true)
                                     }
@@ -86,6 +97,16 @@ class MainActivity : ComponentActivity() {
                                         getString(R.string.activation_success),
                                         Toast.LENGTH_LONG
                                     ).show()
+                                    backStack.clear()
+                                    backStack.add(HomeRoute)
+                                }
+                            )
+                        }
+
+                        entry<BiometricRoute> {
+                            BiometricAuthScreen(
+                                onAuthenticated = {
+                                    isBiometricVerified = true
                                     backStack.clear()
                                     backStack.add(HomeRoute)
                                 }

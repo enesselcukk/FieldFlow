@@ -18,4 +18,14 @@
     <string name="activation_code_label">Aktivasyon Kodu</string>
     <string name="activation_invalid_code">Aktivasyon kodu gecersiz.</string>
     <string name="activation_button">Aktive Et</string>
+    <string name="biometric_title">Biyometrik Dogrulama</string>
+    <string name="biometric_description">Devam etmek icin parmak izi veya yuz dogrulama kullanin.</string>
+    <string name="biometric_button">Biyometrik ile Dogrula</string>
+    <string name="biometric_prompt_title">Kimliginizi dogrulayin</string>
+    <string name="biometric_prompt_subtitle">Parmak izi veya yuz dogrulamasi kullanin</string>
+    <string name="biometric_prompt_cancel">Iptal</string>
+    <string name="biometric_no_hardware">Bu cihaz biyometrik desteklemiyor.</string>
+    <string name="biometric_unavailable">Biyometrik dogrulama su anda kullanilamiyor.</string>
+    <string name="biometric_not_enrolled">Kayitli biyometrik bilgi yok. Lutfen cihaz ayarlarindan ekleyin.</string>
+    <string name="biometric_failed">Biyometrik dogrulama basarisiz.</string>
 </resources>

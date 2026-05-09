@@ -69,6 +69,12 @@ dependencies {
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.kotlinx.serialization.json)
 
+    // Location
+    implementation(libs.play.services.location)
+
+    // OSMDroid maps
+    implementation(libs.osmdroid.android)
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

@@ -4,15 +4,25 @@
     <string name="detected_identity">Tespit edildi: %1$s %2$s</string>
     <string name="activation_success">Aktivasyon başarıyla tamamlandı.</string>
     <string name="app_activated_message">Hoş geldiniz! Güvenli şekilde giriş yaptınız.</string>
-    <string name="biometric_prompt_title">Kimliğinizi doğrulayın</string>
-    <string name="biometric_prompt_subtitle">Parmak izi veya yüz tanıma kullanın</string>
-    <string name="biometric_no_hardware">Bu cihaz biyometriği desteklemiyor.</string>
-    <string name="biometric_unavailable">Biyometrik kimlik doğrulama şu an kullanılamıyor.</string>
-    <string name="biometric_not_enrolled">Kayıtlı biyometrik bulunamadı. Lütfen cihaz ayarlarından kayıt olun.</string>
-    <string name="biometric_failed">Biyometrik doğrulama başarısız.</string>
 
     <string name="topbar_scan">Kimlik Kartı Tarama</string>
     <string name="topbar_activation">Aktivasyon</string>
     <string name="topbar_biometric">Biyometrik Doğrulama</string>
     <string name="topbar_home">Durum Paneli</string>
+
+    <string name="notif_channel_tracking_name">Konum Takibi</string>
+    <string name="notif_channel_tracking_desc">FieldFlow arka planda konumunuzu takip ediyor</string>
+    <string name="notif_channel_geofence_name">Bölge Uyarıları</string>
+    <string name="notif_channel_geofence_desc">Güvenli bölge ihlalleri için yüksek öncelikli uyarılar</string>
+    <string name="notif_channel_system_name">Sistem Uyarıları</string>
+    <string name="notif_channel_system_desc">Bağlantı ve konum servisi durum bildirimleri</string>
+
+    <string name="notif_tracking_title">FieldFlow — Aktif</string>
+    <string name="notif_tracking_text">Uygulama arka planda çalışıyor</string>
+    <string name="notif_geofence_title">Güvenlik Uyarısı</string>
+    <string name="notif_geofence_text">Bir bölge ihlali tespit edildi. Detaylar için uygulamayı açın.</string>
+    <string name="notif_internet_lost_title">Bağlantı Uyarısı</string>
+    <string name="notif_internet_lost_text">Ağ bağlantısı kesildi. Detaylar için uygulamayı açın.</string>
+    <string name="notif_location_disabled_title">Konum Servisi Kapatıldı</string>
+    <string name="notif_location_disabled_text">Konum takibi durdu. Detaylar için uygulamayı açın.</string>
 </resources>

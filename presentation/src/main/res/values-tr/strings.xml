@@ -54,4 +54,51 @@
     <string name="status_battery_measuring">Ölçülüyor…</string>
     <string name="status_battery_low">%1$d%% — Düşük Pil</string>
     <string name="status_battery_normal">%1$d%%</string>
+
+    <string name="tracking_active">Konum Takibi: Aktif</string>
+    <string name="tracking_inactive">Konum Takibi: Pasif</string>
+    <string name="open_map">Haritayı Aç</string>
+    <string name="map_start_tracking">Takibi Başlat</string>
+    <string name="map_stop_tracking">Takibi Durdur</string>
+    <string name="map_start_playback">Güzergahı Oynat</string>
+    <string name="map_stop_playback">Oynatmayı Durdur</string>
+    <string name="map_current_location">Şu Anki Konum</string>
+    <string name="map_track_start">Başlangıç Noktası</string>
+    <string name="map_playback_position">Oynatma Konumu</string>
+    <string name="map_location_permission_required">Haritayı göstermek için konum iznine ihtiyaç var.</string>
+    <string name="map_grant_location_permission">İzin Ver</string>
+    <string name="topbar_map">Harita</string>
+
+    <string name="geofence_add_zone">Güvenli Bölge Ekle</string>
+    <string name="geofence_zones_title">Tanımlı Bölgeler</string>
+    <string name="geofence_events_title">Son Olaylar</string>
+    <string name="geofence_event_exit">Bölgeden çıkıldı</string>
+    <string name="geofence_event_enter">Bölgeye girildi</string>
+    <string name="geofence_dialog_title">Güvenli Bölge Ekle</string>
+    <string name="geofence_zone_name">Bölge Adı</string>
+    <string name="geofence_latitude">Enlem</string>
+    <string name="geofence_longitude">Boylam</string>
+    <string name="geofence_radius_meters">Yarıçap (metre)</string>
+    <string name="geofence_save">Kaydet</string>
+    <string name="geofence_cancel">İptal</string>
+
+    <string name="event_log_title">Olay Kayıtları</string>
+    <string name="event_log_empty">Henüz olay kaydedilmedi.</string>
+    <string name="event_log_note_dialog_title">Not Ekle</string>
+    <string name="event_log_note_hint">Bu olaya not girin…</string>
+    <string name="event_log_note_save">Kaydet</string>
+    <string name="event_log_note_cancel">İptal</string>
+    <string name="event_log_note_label">Not</string>
+    <string name="event_log_add_note">Not ekle</string>
+    <string name="event_log_edit_note">Notu düzenle</string>
+
+    <string name="event_type_geofence_exit">Güvenli bölgeden çıkıldı</string>
+    <string name="event_type_geofence_enter">Güvenli bölgeye girildi</string>
+    <string name="event_type_internet_lost">İnternet bağlantısı kesildi</string>
+    <string name="event_type_internet_restored">İnternet bağlantısı sağlandı</string>
+    <string name="event_type_location_disabled">Konum servisi kapatıldı</string>
+    <string name="event_type_location_enabled">Konum servisi açıldı</string>
+
+    <string name="topbar_event_log">Olay Kayıtları</string>
+    <string name="open_event_log">Olay Kayıtları</string>
 </resources>

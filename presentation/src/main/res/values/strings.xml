@@ -53,4 +53,51 @@
     <string name="status_battery_measuring">Measuring…</string>
     <string name="status_battery_low">%1$d%% — Low Battery</string>
     <string name="status_battery_normal">%1$d%%</string>
+
+    <string name="tracking_active">Location Tracking: Active</string>
+    <string name="tracking_inactive">Location Tracking: Inactive</string>
+    <string name="open_map">Open Map</string>
+    <string name="map_start_tracking">Start Tracking</string>
+    <string name="map_stop_tracking">Stop Tracking</string>
+    <string name="map_start_playback">Play Route</string>
+    <string name="map_stop_playback">Stop Playback</string>
+    <string name="map_current_location">Current Location</string>
+    <string name="map_track_start">Start Point</string>
+    <string name="map_playback_position">Playback Position</string>
+    <string name="map_location_permission_required">Location permission is required to show the map.</string>
+    <string name="map_grant_location_permission">Grant Permission</string>
+    <string name="topbar_map">Map</string>
+
+    <string name="geofence_add_zone">Add Safe Zone</string>
+    <string name="geofence_zones_title">Defined Zones</string>
+    <string name="geofence_events_title">Recent Events</string>
+    <string name="geofence_event_exit">Left the zone</string>
+    <string name="geofence_event_enter">Entered the zone</string>
+    <string name="geofence_dialog_title">Add Safe Zone</string>
+    <string name="geofence_zone_name">Zone Name</string>
+    <string name="geofence_latitude">Latitude</string>
+    <string name="geofence_longitude">Longitude</string>
+    <string name="geofence_radius_meters">Radius (meters)</string>
+    <string name="geofence_save">Save</string>
+    <string name="geofence_cancel">Cancel</string>
+
+    <string name="event_log_title">Event Records</string>
+    <string name="event_log_empty">No events recorded yet.</string>
+    <string name="event_log_note_dialog_title">Add Note</string>
+    <string name="event_log_note_hint">Enter a note for this event…</string>
+    <string name="event_log_note_save">Save</string>
+    <string name="event_log_note_cancel">Cancel</string>
+    <string name="event_log_note_label">Note</string>
+    <string name="event_log_add_note">Add note</string>
+    <string name="event_log_edit_note">Edit note</string>
+
+    <string name="event_type_geofence_exit">Left safe zone</string>
+    <string name="event_type_geofence_enter">Entered safe zone</string>
+    <string name="event_type_internet_lost">Internet connection lost</string>
+    <string name="event_type_internet_restored">Internet connection restored</string>
+    <string name="event_type_location_disabled">Location services disabled</string>
+    <string name="event_type_location_enabled">Location services enabled</string>
+
+    <string name="topbar_event_log">Event Records</string>
+    <string name="open_event_log">Event Records</string>
 </resources>

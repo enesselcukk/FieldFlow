@@ -3,16 +3,25 @@
     <string name="detected_identity">Detected: %1$s %2$s</string>
     <string name="activation_success">Activation completed successfully.</string>
     <string name="app_activated_message">Welcome! You are logged in securely.</string>
-    <string name="biometric_prompt_title">Verify your identity</string>
-    <string name="biometric_prompt_subtitle">Use fingerprint or face authentication</string>
-    <string name="biometric_no_hardware">This device does not support biometrics.</string>
-    <string name="biometric_unavailable">Biometric authentication is currently unavailable.</string>
-    <string name="biometric_not_enrolled">No biometric credential found. Please enroll in device settings.</string>
-    <string name="biometric_failed">Biometric verification failed.</string>
 
-    <!-- TopBar titles -->
     <string name="topbar_scan">ID Card Scan</string>
     <string name="topbar_activation">Activation</string>
     <string name="topbar_biometric">Biometric Verification</string>
     <string name="topbar_home">Status Dashboard</string>
+
+    <string name="notif_channel_tracking_name">Location Tracking</string>
+    <string name="notif_channel_tracking_desc">FieldFlow is tracking your location in the background</string>
+    <string name="notif_channel_geofence_name">Zone Alerts</string>
+    <string name="notif_channel_geofence_desc">High-priority alerts for safe zone violations</string>
+    <string name="notif_channel_system_name">System Alerts</string>
+    <string name="notif_channel_system_desc">Connectivity and location service status notifications</string>
+
+    <string name="notif_tracking_title">FieldFlow — Active</string>
+    <string name="notif_tracking_text">App is running in the background</string>
+    <string name="notif_geofence_title">Security Alert</string>
+    <string name="notif_geofence_text">A zone violation has been detected. Open the app for details.</string>
+    <string name="notif_internet_lost_title">Connectivity Alert</string>
+    <string name="notif_internet_lost_text">Network connection lost. Open the app for details.</string>
+    <string name="notif_location_disabled_title">Location Service Disabled</string>
+    <string name="notif_location_disabled_text">Location tracking has stopped. Open the app for details.</string>
 </resources>

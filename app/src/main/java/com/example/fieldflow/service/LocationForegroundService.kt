@@ -1,0 +1,241 @@
+package com.example.fieldflow.service
+
+import android.Manifest
+import android.app.Service
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
+import android.os.Build
+import android.os.IBinder
+import android.os.Looper
+import androidx.core.content.ContextCompat
+import com.example.domain.model.EventRecord
+import com.example.domain.model.GeofenceEvent
+import com.example.domain.model.LocationRecord
+import com.example.domain.repository.StatusRepository
+import com.example.domain.usecase.GetAllGeofenceZonesUseCase
+import com.example.domain.usecase.SaveEventUseCase
+import com.example.domain.usecase.SaveGeofenceEventUseCase
+import com.example.domain.usecase.SaveLocationUseCase
+import com.example.fieldflow.notification.NotificationHelper
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@AndroidEntryPoint
+class LocationForegroundService : Service() {
+
+    @Inject lateinit var saveLocation: SaveLocationUseCase
+    @Inject lateinit var getAllGeofenceZones: GetAllGeofenceZonesUseCase
+    @Inject lateinit var saveGeofenceEvent: SaveGeofenceEventUseCase
+    @Inject lateinit var saveEvent: SaveEventUseCase
+    @Inject lateinit var statusRepository: StatusRepository
+    @Inject lateinit var notificationHelper: NotificationHelper
+
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private var locationCallback: LocationCallback? = null
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    
+    private val zoneStates = mutableMapOf<Long, Boolean?>()
+
+    private var currentIntervalMs: Long = DEFAULT_INTERVAL_MS
+
+    override fun onCreate() {
+        super.onCreate()
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        isRunning = true
+        startMonitoringSystemEvents()
+    }
+
+    @Suppress("MissingPermission")
+    private fun startMonitoringSystemEvents() {
+        serviceScope.launch {
+            var isFirst = true
+            statusRepository.observeConnectivity().collect { isOnline ->
+                if (isFirst) { isFirst = false; return@collect }
+                saveEvent(
+                    EventRecord(
+                        timestamp = System.currentTimeMillis(),
+                        type = if (isOnline) EventRecord.EventType.INTERNET_RESTORED
+                               else EventRecord.EventType.INTERNET_LOST
+                    )
+                )
+                if (isOnline) {
+                    notificationHelper.cancelInternetLostAlert()
+                } else {
+                    notificationHelper.sendInternetLostAlert()
+                }
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            serviceScope.launch {
+                var isFirst = true
+                statusRepository.observeLocationEnabled().collect { isEnabled ->
+                    if (isFirst) { isFirst = false; return@collect }
+                    saveEvent(
+                        EventRecord(
+                            timestamp = System.currentTimeMillis(),
+                            type = if (isEnabled) EventRecord.EventType.LOCATION_SERVICE_ENABLED
+                                   else EventRecord.EventType.LOCATION_SERVICE_DISABLED
+                        )
+                    )
+                    if (isEnabled) {
+                        notificationHelper.cancelLocationServiceDisabledAlert()
+                    } else {
+                        notificationHelper.sendLocationServiceDisabledAlert()
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val intervalMs = intent?.getLongExtra(EXTRA_INTERVAL_MS, currentIntervalMs)
+            ?: currentIntervalMs
+        currentIntervalMs = intervalMs
+
+        notificationHelper.createChannels()
+        startForeground(
+            NotificationHelper.NOTIFICATION_ID_TRACKING,
+            notificationHelper.buildTrackingNotification()
+        )
+        restartLocationUpdates(intervalMs)
+
+        return START_STICKY
+    }
+
+    override fun onDestroy() {
+        stopLocationUpdates()
+        serviceScope.cancel()
+        isRunning = false
+        super.onDestroy()
+    }
+
+    override fun onBind(intent: Intent?): IBinder? = null
+
+    private fun restartLocationUpdates(intervalMs: Long) {
+        stopLocationUpdates()
+        startLocationUpdates(intervalMs)
+    }
+
+    private fun stopLocationUpdates() {
+        locationCallback?.let { fusedLocationClient.removeLocationUpdates(it) }
+        locationCallback = null
+    }
+
+    private fun startLocationUpdates(intervalMs: Long) {
+        val hasFineLocation = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!hasFineLocation) { stopSelf(); return }
+
+        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, intervalMs)
+            .setMinUpdateIntervalMillis(intervalMs / 2)
+            .setWaitForAccurateLocation(false)
+            .build()
+
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                result.lastLocation?.let { location ->
+                    serviceScope.launch {
+                        saveLocation(
+                            LocationRecord(
+                                latitude = location.latitude,
+                                longitude = location.longitude,
+                                timestamp = System.currentTimeMillis()
+                            )
+                        )
+                        checkGeofences(location)
+                    }
+                }
+            }
+        }
+
+        fusedLocationClient.requestLocationUpdates(
+            request, locationCallback!!, Looper.getMainLooper()
+        )
+    }
+
+    private suspend fun checkGeofences(location: Location) {
+        val zones = getAllGeofenceZones()
+        val now = System.currentTimeMillis()
+
+        for (zone in zones) {
+            val results = FloatArray(1)
+            Location.distanceBetween(
+                location.latitude, location.longitude,
+                zone.centerLat, zone.centerLng,
+                results
+            )
+            val distanceMeters = results[0]
+            val isInsideNow = distanceMeters <= zone.radiusMeters
+            val wasInside = zoneStates[zone.id]
+
+            zoneStates[zone.id] = isInsideNow
+
+            
+            if (wasInside == null) continue
+
+            when {
+                wasInside && !isInsideNow -> {
+                    saveGeofenceEvent(
+                        GeofenceEvent(
+                            zoneId = zone.id,
+                            zoneName = zone.name,
+                            timestamp = now,
+                            eventType = GeofenceEvent.EventType.EXIT
+                        )
+                    )
+                    saveEvent(
+                        EventRecord(
+                            timestamp = now,
+                            type = EventRecord.EventType.GEOFENCE_EXIT,
+                            detail = zone.name
+                        )
+                    )
+                    
+                    
+                    notificationHelper.sendGeofenceExitAlert(zone.id.toInt())
+                }
+                !wasInside && isInsideNow -> {
+                    saveGeofenceEvent(
+                        GeofenceEvent(
+                            zoneId = zone.id,
+                            zoneName = zone.name,
+                            timestamp = now,
+                            eventType = GeofenceEvent.EventType.ENTER
+                        )
+                    )
+                    saveEvent(
+                        EventRecord(
+                            timestamp = now,
+                            type = EventRecord.EventType.GEOFENCE_ENTER,
+                            detail = zone.name
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    companion object {
+        const val EXTRA_INTERVAL_MS = "extra_interval_ms"
+        const val DEFAULT_INTERVAL_MS = 60_000L
+
+        @Volatile
+        var isRunning: Boolean = false
+            private set
+    }
+}

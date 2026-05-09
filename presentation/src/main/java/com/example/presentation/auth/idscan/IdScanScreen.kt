@@ -123,11 +123,6 @@ fun IdScanScreen(
         verticalArrangement = Arrangement.Top
     ) {
         Text(
-            text = stringResource(R.string.id_scan_title),
-            style = MaterialTheme.typography.headlineSmall
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
             text = stringResource(R.string.id_scan_description)
         )
 

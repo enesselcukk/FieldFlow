@@ -8,6 +8,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.repository.StatusRepository
+import com.example.domain.repository.TrackingRepository
+import com.example.domain.usecase.StartTrackingUseCase
+import com.example.domain.usecase.StopTrackingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val statusRepository: StatusRepository,
+    private val trackingRepository: TrackingRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -35,20 +39,24 @@ class HomeViewModel @Inject constructor(
         statusRepository.observeConnectivity(),
         statusRepository.observeLocationEnabled(),
         statusRepository.observeBatteryLevel(),
-        _runtimePermissions
-    ) { isOnline, isLocationEnabled, batteryLevel, runtimePerms ->
+        _runtimePermissions,
+        trackingRepository.isTracking
+    ) { isOnline, isLocationEnabled, batteryLevel, runtimePerms, isTracking ->
         HomeUiState(
             isOnline = isOnline,
             isLocationEnabled = isLocationEnabled,
             isBatteryOptimizationIgnored = runtimePerms.isBatteryOptimizationIgnored,
             hasNotificationPermission = runtimePerms.hasNotificationPermission,
-            batteryLevel = batteryLevel
+            batteryLevel = batteryLevel,
+            isTracking = isTracking
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = HomeUiState()
     )
+
+    fun toggleTracking() = trackingRepository.toggleTracking()
 
     fun refreshRuntimePermissions() {
         _runtimePermissions.update {

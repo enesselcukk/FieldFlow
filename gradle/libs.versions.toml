@@ -9,8 +9,7 @@ espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.11.0"
 composeBom = "2024.09.00"
-appcompat = "1.7.1"
-material = "1.13.0"
+osmdroidAndroid = "6.1.20"
 room = "2.7.0"
 hilt = "2.51.1"
 hiltAndroidx = "1.2.0"
@@ -20,9 +19,7 @@ datastore = "1.1.1"
 workManager = "2.9.1"
 biometric = "1.1.0"
 mlkitTextRecognition = "16.0.1"
-playServicesMaps = "18.2.0"
 playServicesLocation = "21.3.0"
-mapsCompose = "4.3.3"
 serialization = "1.7.3"
 navigation3 = "1.1.1"
 cameraX = "1.6.1"
@@ -30,8 +27,6 @@ cameraX = "1.6.1"
 [libraries]
 # Core
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 # Lifecycle
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
@@ -78,10 +73,9 @@ biometric = { group = "androidx.biometric", name = "biometric", version.ref = "b
 # ML Kit OCR
 mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
 
-# Maps & Location
-play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
+#Location & Maps
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
-maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "mapsCompose" }
+osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroidAndroid" }
 
 # Serialization
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }

@@ -16,15 +16,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -49,6 +54,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun HomeScreen(
     message: String,
+    onNavigateToMap: () -> Unit = {},
+    onNavigateToEventLog: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -141,6 +148,13 @@ fun HomeScreen(
 
         BatteryStatusCard(batteryLevel = uiState.batteryLevel)
 
+        TrackingControlCard(
+            isTracking = uiState.isTracking,
+            onToggleTracking = viewModel::toggleTracking,
+            onNavigateToMap = onNavigateToMap,
+            onNavigateToEventLog = onNavigateToEventLog
+        )
+
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
@@ -201,6 +215,78 @@ private fun StatusCard(
                         fontWeight = FontWeight.Bold
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TrackingControlCard(
+    isTracking: Boolean,
+    onToggleTracking: () -> Unit,
+    onNavigateToMap: () -> Unit,
+    onNavigateToEventLog: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.map_start_tracking).let {
+                        if (isTracking) stringResource(R.string.tracking_active)
+                        else stringResource(R.string.tracking_inactive)
+                    },
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = onToggleTracking,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isTracking)
+                            MaterialTheme.colorScheme.error
+                        else
+                            MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(
+                        text = if (isTracking)
+                            stringResource(R.string.map_stop_tracking)
+                        else
+                            stringResource(R.string.map_start_tracking),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                OutlinedButton(
+                    onClick = onNavigateToMap,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(stringResource(R.string.open_map))
+                }
+            }
+            OutlinedButton(
+                onClick = onNavigateToEventLog,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.open_event_log))
             }
         }
     }

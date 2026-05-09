@@ -71,9 +71,8 @@ dependencies {
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
 
-    // Harita
-    implementation(libs.play.services.maps)
-    implementation(libs.maps.compose)
+    // Maps
+    implementation(libs.osmdroid.android)
 
     // biometric
     implementation(libs.biometric)

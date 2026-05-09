@@ -20,3 +20,9 @@ data object BiometricRoute : NavKey
 
 @Serializable
 data object HomeRoute : NavKey
+
+@Serializable
+data object MapRoute : NavKey
+
+@Serializable
+data object EventLogRoute : NavKey

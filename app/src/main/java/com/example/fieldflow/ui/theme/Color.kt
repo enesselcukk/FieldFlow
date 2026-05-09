@@ -2,10 +2,11 @@ package com.example.fieldflow.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+val FieldFlowBlue = Color(0xFF1565C0)
+val FieldFlowBlueDark = Color(0xFF82B1FF)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val FieldFlowSlate = Color(0xFF455A64)
+val FieldFlowSlateDark = Color(0xFFB0BEC5)
+
+val FieldFlowAlert = Color(0xFFE65100)
+val FieldFlowAlertDark = Color(0xFFFFAB40)

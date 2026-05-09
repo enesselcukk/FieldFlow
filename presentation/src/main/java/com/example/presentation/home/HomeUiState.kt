@@ -6,4 +6,5 @@ data class HomeUiState(
     val isBatteryOptimizationIgnored: Boolean = false,
     val hasNotificationPermission: Boolean = false,
     val batteryLevel: Int = -1,
+    val isTracking: Boolean = false,
 )

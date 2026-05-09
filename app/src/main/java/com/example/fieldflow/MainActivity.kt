@@ -1,5 +1,7 @@
 package com.example.fieldflow
 
+import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -21,7 +23,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -33,14 +34,18 @@ import androidx.navigation3.ui.NavDisplay
 import com.example.fieldflow.activation.AppActivationStore
 import com.example.fieldflow.navigation.ActivationRoute
 import com.example.fieldflow.navigation.BiometricRoute
+import com.example.fieldflow.navigation.EventLogRoute
 import com.example.fieldflow.navigation.HomeRoute
+import com.example.fieldflow.navigation.MapRoute
 import com.example.fieldflow.navigation.ScanRoute
 import com.example.fieldflow.navigation.SplashRoute
 import com.example.fieldflow.ui.theme.FieldFlowTheme
 import com.example.presentation.auth.activation.ActivationCodeScreen
 import com.example.presentation.auth.biometric.BiometricAuthScreen
 import com.example.presentation.auth.idscan.IdScanScreen
+import com.example.presentation.eventlog.EventLogScreen
 import com.example.presentation.home.HomeScreen
+import com.example.presentation.map.MapScreen
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -48,6 +53,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     private val activationStore by lazy { AppActivationStore(applicationContext) }
 
+    @SuppressLint("ImplicitSamInstance")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,6 +86,8 @@ class MainActivity : ComponentActivity() {
                     is ActivationRoute -> stringResource(R.string.topbar_activation)
                     is BiometricRoute -> stringResource(R.string.topbar_biometric)
                     is HomeRoute -> stringResource(R.string.topbar_home)
+                    is MapRoute -> stringResource(com.example.presentation.R.string.topbar_map)
+                    is EventLogRoute -> stringResource(com.example.presentation.R.string.topbar_event_log)
                     else -> stringResource(R.string.app_name)
                 }
 
@@ -176,7 +184,19 @@ class MainActivity : ComponentActivity() {
                                 }
 
                                 entry<HomeRoute> {
-                                    HomeScreen(message = getString(R.string.app_activated_message))
+                                    HomeScreen(
+                                        message = getString(R.string.app_activated_message),
+                                        onNavigateToMap = { backStack.add(MapRoute) },
+                                        onNavigateToEventLog = { backStack.add(EventLogRoute) }
+                                    )
+                                }
+
+                                entry<EventLogRoute> {
+                                    EventLogScreen()
+                                }
+
+                                entry<MapRoute> {
+                                    MapScreen()
                                 }
                             }
                         )

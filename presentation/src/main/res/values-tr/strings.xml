@@ -1,31 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="id_scan_title">Kimlik Tarama</string>
-    <string name="id_scan_description">Kimlik karti on yuzunu kameraya gosterip tara butonuna basin.</string>
-    <string name="camera_permission_required">Kamera izni gerekli.</string>
-    <string name="grant_camera_permission">Kamera izni ver</string>
-    <string name="scan_id_card">Kimligi Tara</string>
-    <string name="scanning">Taraniyor…</string>
+    <string name="id_scan_title">Kimlik Kartı Tarama</string>
+    <string name="id_scan_description">Kimlik kartınızın ön yüzünü kameraya gösterin ve tara butonuna dokunun.</string>
+    <string name="camera_permission_required">Kamera izni gereklidir.</string>
+    <string name="grant_camera_permission">Kamera iznine izin ver</string>
+    <string name="scan_id_card">Kimlik Kartını Tara</string>
+    <string name="scanning">Taranıyor…</string>
     <string name="first_name">Ad</string>
     <string name="last_name">Soyad</string>
     <string name="continue_button">Devam Et</string>
-    <string name="camera_capture_error">Foto cekilemedi: %1$s</string>
+    <string name="camera_capture_error">Fotoğraf çekilemedi: %1$s</string>
     <string name="unknown_error">bilinmeyen hata</string>
-    <string name="ocr_not_found">Ad/Soyad otomatik bulunamadi, manuel giris yapin.</string>
-    <string name="ocr_failed">OCR basarisiz: %1$s</string>
-    <string name="image_processing_failed">Goruntu islenemedi.</string>
-    <string name="activation_title">Uygulamayi Aktive Et</string>
-    <string name="activation_description">Tek kullanimlik aktivasyon kodunu girin.</string>
+    <string name="ocr_not_found">Ad/soyad otomatik tespit edilemedi. Lütfen manuel olarak girin.</string>
+    <string name="ocr_failed">OCR başarısız: %1$s</string>
+    <string name="image_processing_failed">Görüntü işlenemedi.</string>
+    <string name="activation_title">Uygulamayı Etkinleştir</string>
+    <string name="activation_description">Tek kullanımlık aktivasyon kodunuzu girin.</string>
     <string name="activation_code_label">Aktivasyon Kodu</string>
-    <string name="activation_invalid_code">Aktivasyon kodu gecersiz.</string>
-    <string name="activation_button">Aktive Et</string>
-    <string name="biometric_title">Biyometrik Dogrulama</string>
-    <string name="biometric_description">Devam etmek icin parmak izi veya yuz dogrulama kullanin.</string>
-    <string name="biometric_button">Biyometrik ile Dogrula</string>
-    <string name="biometric_prompt_title">Kimliginizi dogrulayin</string>
-    <string name="biometric_prompt_subtitle">Parmak izi veya yuz dogrulamasi kullanin</string>
-    <string name="biometric_prompt_cancel">Iptal</string>
-    <string name="biometric_no_hardware">Bu cihaz biyometrik desteklemiyor.</string>
-    <string name="biometric_unavailable">Biyometrik dogrulama su anda kullanilamiyor.</string>
-    <string name="biometric_not_enrolled">Kayitli biyometrik bilgi yok. Lutfen cihaz ayarlarindan ekleyin.</string>
-    <string name="biometric_failed">Biyometrik dogrulama basarisiz.</string>
+    <string name="activation_invalid_code">Geçersiz aktivasyon kodu.</string>
+    <string name="activation_button">Etkinleştir</string>
+    <string name="biometric_title">Biyometrik Doğrulama</string>
+    <string name="biometric_description">Devam etmek için parmak izinizi veya yüzünüzü kullanın.</string>
+    <string name="biometric_button">Biyometrik ile Doğrula</string>
+    <string name="biometric_prompt_title">Kimliğinizi doğrulayın</string>
+    <string name="biometric_prompt_subtitle">Parmak izi veya yüz tanıma kullanın</string>
+    <string name="biometric_prompt_cancel">İptal</string>
+    <string name="biometric_no_hardware">Bu cihaz biyometriği desteklemiyor.</string>
+    <string name="biometric_unavailable">Biyometrik kimlik doğrulama şu an kullanılamıyor.</string>
+    <string name="biometric_not_enrolled">Kayıtlı biyometrik bulunamadı. Lütfen cihaz ayarlarından kayıt olun.</string>
+    <string name="biometric_failed">Biyometrik doğrulama başarısız.</string>
+
+    <string name="status_internet_title">İnternet Bağlantısı</string>
+    <string name="status_internet_online">Çevrimiçi</string>
+    <string name="status_internet_offline">Çevrimdışı</string>
+    <string name="status_internet_action">Bağlantı Ayarları</string>
+
+    <string name="status_location_title">Konum Servisleri</string>
+    <string name="status_location_on">Açık</string>
+    <string name="status_location_off">Kapalı</string>
+    <string name="status_location_action">Konum Ayarları</string>
+
+    <string name="status_background_title">Arka Plan İzni</string>
+    <string name="status_background_granted">İzin Verildi</string>
+    <string name="status_background_restricted">Kısıtlı (Pil Optimizasyonu Aktif)</string>
+    <string name="status_background_action">İzin Ver</string>
+
+    <string name="status_notification_title">Bildirim İzni</string>
+    <string name="status_notification_granted">İzin Verildi</string>
+    <string name="status_notification_denied">İzin Verilmedi</string>
+    <string name="status_notification_action">İzin Ver</string>
+
+    <string name="status_battery_title">Pil Seviyesi</string>
+    <string name="status_battery_measuring">Ölçülüyor…</string>
+    <string name="status_battery_low">%1$d%% — Düşük Pil</string>
+    <string name="status_battery_normal">%1$d%%</string>
 </resources>

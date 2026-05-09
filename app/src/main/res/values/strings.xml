@@ -9,4 +9,10 @@
     <string name="biometric_unavailable">Biometric authentication is currently unavailable.</string>
     <string name="biometric_not_enrolled">No biometric credential found. Please enroll in device settings.</string>
     <string name="biometric_failed">Biometric verification failed.</string>
+
+    <!-- TopBar titles -->
+    <string name="topbar_scan">ID Card Scan</string>
+    <string name="topbar_activation">Activation</string>
+    <string name="topbar_biometric">Biometric Verification</string>
+    <string name="topbar_home">Status Dashboard</string>
 </resources>

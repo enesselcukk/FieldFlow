@@ -28,4 +28,29 @@
     <string name="biometric_unavailable">Biometric authentication is currently unavailable.</string>
     <string name="biometric_not_enrolled">No biometric credential found. Please enroll in device settings.</string>
     <string name="biometric_failed">Biometric verification failed.</string>
+
+    <string name="status_internet_title">Internet Connection</string>
+    <string name="status_internet_online">Online</string>
+    <string name="status_internet_offline">Offline</string>
+    <string name="status_internet_action">Connection Settings</string>
+
+    <string name="status_location_title">Location Services</string>
+    <string name="status_location_on">On</string>
+    <string name="status_location_off">Off</string>
+    <string name="status_location_action">Location Settings</string>
+
+    <string name="status_background_title">Background Permission</string>
+    <string name="status_background_granted">Permission Granted</string>
+    <string name="status_background_restricted">Restricted (Battery Optimization Active)</string>
+    <string name="status_background_action">Grant Permission</string>
+
+    <string name="status_notification_title">Notification Permission</string>
+    <string name="status_notification_granted">Permission Granted</string>
+    <string name="status_notification_denied">Permission Denied</string>
+    <string name="status_notification_action">Grant Permission</string>
+
+    <string name="status_battery_title">Battery Level</string>
+    <string name="status_battery_measuring">Measuring…</string>
+    <string name="status_battery_low">%1$d%% — Low Battery</string>
+    <string name="status_battery_normal">%1$d%%</string>
 </resources>

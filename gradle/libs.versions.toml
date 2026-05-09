@@ -24,6 +24,7 @@ playServicesMaps = "18.2.0"
 playServicesLocation = "21.3.0"
 mapsCompose = "4.3.3"
 serialization = "1.7.3"
+navigation3 = "1.0.1"
 
 [libraries]
 # Core
@@ -83,6 +84,9 @@ maps-compose = { group = "com.google.maps.android", name = "maps-compose", versi
 
 # Serialization
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
+
+androidx-navigation3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "navigation3" }
+androidx-navigation3-ui = { group = "androidx.navigation3", name = "navigation3-ui", version.ref = "navigation3" }
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }

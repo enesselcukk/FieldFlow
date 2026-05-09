@@ -1,0 +1,21 @@
+<resources>
+    <string name="id_scan_title">ID Card Scan</string>
+    <string name="id_scan_description">Show the front side of your ID card to the camera and tap scan.</string>
+    <string name="camera_permission_required">Camera permission is required.</string>
+    <string name="grant_camera_permission">Grant camera permission</string>
+    <string name="scan_id_card">Scan ID Card</string>
+    <string name="scanning">Scanning…</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="continue_button">Continue</string>
+    <string name="camera_capture_error">Photo could not be captured: %1$s</string>
+    <string name="unknown_error">unknown error</string>
+    <string name="ocr_not_found">First/last name could not be detected automatically. Please enter manually.</string>
+    <string name="ocr_failed">OCR failed: %1$s</string>
+    <string name="image_processing_failed">Image could not be processed.</string>
+    <string name="activation_title">Activate App</string>
+    <string name="activation_description">Enter your one-time activation code.</string>
+    <string name="activation_code_label">Activation Code</string>
+    <string name="activation_invalid_code">Invalid activation code.</string>
+    <string name="activation_button">Activate</string>
+</resources>

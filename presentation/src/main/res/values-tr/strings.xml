@@ -1,0 +1,21 @@
+<resources>
+    <string name="id_scan_title">Kimlik Tarama</string>
+    <string name="id_scan_description">Kimlik karti on yuzunu kameraya gosterip tara butonuna basin.</string>
+    <string name="camera_permission_required">Kamera izni gerekli.</string>
+    <string name="grant_camera_permission">Kamera izni ver</string>
+    <string name="scan_id_card">Kimligi Tara</string>
+    <string name="scanning">Taraniyor…</string>
+    <string name="first_name">Ad</string>
+    <string name="last_name">Soyad</string>
+    <string name="continue_button">Devam Et</string>
+    <string name="camera_capture_error">Foto cekilemedi: %1$s</string>
+    <string name="unknown_error">bilinmeyen hata</string>
+    <string name="ocr_not_found">Ad/Soyad otomatik bulunamadi, manuel giris yapin.</string>
+    <string name="ocr_failed">OCR basarisiz: %1$s</string>
+    <string name="image_processing_failed">Goruntu islenemedi.</string>
+    <string name="activation_title">Uygulamayi Aktive Et</string>
+    <string name="activation_description">Tek kullanimlik aktivasyon kodunu girin.</string>
+    <string name="activation_code_label">Aktivasyon Kodu</string>
+    <string name="activation_invalid_code">Aktivasyon kodu gecersiz.</string>
+    <string name="activation_button">Aktive Et</string>
+</resources>

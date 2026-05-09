@@ -1,4 +1,4 @@
-package com.example.presentation.auth
+package com.example.presentation.auth.idscan
 
 import android.Manifest
 import android.content.Context
@@ -40,11 +40,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.IdentityInfo
 import com.example.presentation.R
-import com.example.utils.extensions.containsLabelKey
-import com.example.utils.extensions.isIdentityLabel
-import com.example.utils.extensions.sanitizeIdentityCandidate
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -52,13 +51,16 @@ import java.io.File
 
 @Composable
 fun IdScanScreen(
-    onIdentityDetected: (IdentityInfo) -> Unit = {}
+    onIdentityDetected: (IdentityInfo) -> Unit = {},
+    viewModel: IdScanViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     val imageCapture = remember { ImageCapture.Builder().build() }
     val previewView = remember { PreviewView(context) }
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     var hasCameraPermission by remember {
         mutableStateOf(
@@ -68,10 +70,6 @@ fun IdScanScreen(
             ) == PackageManager.PERMISSION_GRANTED
         )
     }
-    var isLoading by remember { mutableStateOf(false) }
-    var errorText by remember { mutableStateOf<String?>(null) }
-    var name by remember { mutableStateOf("") }
-    var surname by remember { mutableStateOf("") }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -112,6 +110,12 @@ fun IdScanScreen(
         }
     }
 
+    val ocrNotFoundMessage = stringResource(R.string.ocr_not_found)
+    val cameraCaptureErrorPrefix = stringResource(R.string.camera_capture_error, "")
+    val ocrFailedPrefix = stringResource(R.string.ocr_failed, "")
+    val imageProcessingFailedMessage = stringResource(R.string.image_processing_failed)
+    val unknownErrorMessage = stringResource(R.string.unknown_error)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -145,40 +149,40 @@ fun IdScanScreen(
             Spacer(modifier = Modifier.height(12.dp))
             Button(
                 onClick = {
-                    isLoading = true
-                    errorText = null
+                    viewModel.setLoading(true)
                     captureAndRunOcr(
                         context = context,
                         imageCapture = imageCapture,
-                        onSuccess = { detected ->
-                            isLoading = false
-                            name = detected.name
-                            surname = detected.surname
+                        onRawTextReady = { rawText ->
+                            viewModel.onOcrSuccess(rawText, ocrNotFoundMessage)
                         },
-                        onError = {
-                            isLoading = false
-                            errorText = it
-                        }
+                        onError = { errorMsg ->
+                            viewModel.onOcrError(errorMsg)
+                        },
+                        cameraCaptureErrorPrefix = cameraCaptureErrorPrefix,
+                        ocrFailedPrefix = ocrFailedPrefix,
+                        imageProcessingFailedMessage = imageProcessingFailedMessage,
+                        unknownErrorMessage = unknownErrorMessage
                     )
                 },
-                enabled = !isLoading,
+                enabled = !uiState.isLoading,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    if (isLoading) stringResource(R.string.scanning)
+                    if (uiState.isLoading) stringResource(R.string.scanning)
                     else stringResource(R.string.scan_id_card)
                 )
             }
         }
 
-        if (isLoading) {
+        if (uiState.isLoading) {
             Spacer(modifier = Modifier.height(12.dp))
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         }
 
-        errorText?.let {
+        uiState.errorText?.let {
             Spacer(modifier = Modifier.height(12.dp))
             Text(text = it, color = MaterialTheme.colorScheme.error)
         }
@@ -186,25 +190,23 @@ fun IdScanScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
+            value = uiState.name,
+            onValueChange = viewModel::onNameChanged,
             label = { Text(stringResource(R.string.first_name)) },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
-            value = surname,
-            onValueChange = { surname = it },
+            value = uiState.surname,
+            onValueChange = viewModel::onSurnameChanged,
             label = { Text(stringResource(R.string.last_name)) },
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(12.dp))
         Button(
-            onClick = {
-                onIdentityDetected(IdentityInfo(name = name.trim(), surname = surname.trim()))
-            },
-            enabled = name.isNotBlank() && surname.isNotBlank(),
+            onClick = { onIdentityDetected(viewModel.buildIdentityInfo()) },
+            enabled = uiState.name.isNotBlank() && uiState.surname.isNotBlank(),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(stringResource(R.string.continue_button))
@@ -215,8 +217,12 @@ fun IdScanScreen(
 private fun captureAndRunOcr(
     context: Context,
     imageCapture: ImageCapture,
-    onSuccess: (IdentityInfo) -> Unit,
-    onError: (String) -> Unit
+    onRawTextReady: (String) -> Unit,
+    onError: (String) -> Unit,
+    cameraCaptureErrorPrefix: String,
+    ocrFailedPrefix: String,
+    imageProcessingFailedMessage: String,
+    unknownErrorMessage: String
 ) {
     val tempFile = File.createTempFile("id_scan_", ".jpg", context.cacheDir)
     val outputOptions = ImageCapture.OutputFileOptions.Builder(tempFile).build()
@@ -227,16 +233,19 @@ private fun captureAndRunOcr(
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                 val uri = outputFileResults.savedUri ?: Uri.fromFile(tempFile)
-                runOcr(context = context, uri = uri, onSuccess = onSuccess, onError = onError)
+                runOcr(
+                    context = context,
+                    uri = uri,
+                    onRawTextReady = onRawTextReady,
+                    onError = onError,
+                    ocrFailedPrefix = ocrFailedPrefix,
+                    imageProcessingFailedMessage = imageProcessingFailedMessage,
+                    unknownErrorMessage = unknownErrorMessage
+                )
             }
 
             override fun onError(exception: ImageCaptureException) {
-                onError(
-                    context.getString(
-                        R.string.camera_capture_error,
-                        exception.message ?: context.getString(R.string.unknown_error)
-                    )
-                )
+                onError("$cameraCaptureErrorPrefix${exception.message ?: unknownErrorMessage}")
             }
         }
     )
@@ -245,8 +254,11 @@ private fun captureAndRunOcr(
 private fun runOcr(
     context: Context,
     uri: Uri,
-    onSuccess: (IdentityInfo) -> Unit,
-    onError: (String) -> Unit
+    onRawTextReady: (String) -> Unit,
+    onError: (String) -> Unit,
+    ocrFailedPrefix: String,
+    imageProcessingFailedMessage: String,
+    unknownErrorMessage: String
 ) {
     try {
         val image = InputImage.fromFilePath(context, uri)
@@ -254,63 +266,14 @@ private fun runOcr(
 
         recognizer.process(image)
             .addOnSuccessListener { text ->
-                val parsed = IdentityTextParser.parse(text.text)
-                if (parsed.name.isBlank() && parsed.surname.isBlank()) {
-                    onError(context.getString(R.string.ocr_not_found))
-                } else {
-                    onSuccess(parsed)
-                }
+                onRawTextReady(text.text)
                 recognizer.close()
             }
             .addOnFailureListener { e ->
-                onError(
-                    context.getString(
-                        R.string.ocr_failed,
-                        e.message ?: context.getString(R.string.unknown_error)
-                    )
-                )
+                onError("$ocrFailedPrefix${e.message ?: unknownErrorMessage}")
                 recognizer.close()
             }
     } catch (_: Exception) {
-        onError(context.getString(R.string.image_processing_failed))
-    }
-}
-
-private object IdentityTextParser {
-    private val allLabelKeys = listOf(
-        "ADI", "ADI SOYADI", "GIVEN NAME", "GIVEN NAMES", "GIVEN NAME(S)", "NAME",
-        "SOYADI", "SURNAME", "LAST NAME"
-    )
-
-    fun parse(rawText: String): IdentityInfo {
-        val lines = rawText
-            .lines()
-            .map { it.trim() }
-            .filter { it.isNotBlank() }
-
-        val name = findValue(lines, listOf("ADI", "GIVEN NAME", "GIVEN NAMES", "GIVEN NAME(S)"))
-        val surname = findValue(lines, listOf("SOYADI", "SURNAME", "LAST NAME"))
-
-        return IdentityInfo(
-            name = name.orEmpty(),
-            surname = surname.orEmpty()
-        )
-    }
-
-    private fun findValue(lines: List<String>, keys: List<String>): String? {
-        val index = lines.indexOfFirst { line ->
-            keys.any { key -> line.containsLabelKey(key) }
-        }
-        if (index == -1) return null
-
-        val nextLine = lines.getOrNull(index + 1)?.trim().orEmpty().sanitizeIdentityCandidate()
-        if (nextLine.isNotBlank() && !looksLikeLabel(nextLine)) {
-            return nextLine
-        }
-        return null
-    }
-
-    private fun looksLikeLabel(value: String): Boolean {
-        return value.isIdentityLabel(allLabelKeys)
+        onError(imageProcessingFailedMessage)
     }
 }

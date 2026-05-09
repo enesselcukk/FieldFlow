@@ -1,4 +1,4 @@
-package com.example.presentation.auth
+package com.example.presentation.auth.biometric
 
 import android.Manifest
 import android.content.Context

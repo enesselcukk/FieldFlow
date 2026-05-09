@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import dagger.hilt.android.AndroidEntryPoint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,12 +27,13 @@ import com.example.fieldflow.navigation.HomeRoute
 import com.example.fieldflow.navigation.ScanRoute
 import com.example.fieldflow.navigation.SplashRoute
 import com.example.fieldflow.ui.theme.FieldFlowTheme
-import com.example.presentation.auth.ActivationCodeScreen
-import com.example.presentation.auth.BiometricAuthScreen
-import com.example.presentation.auth.IdScanScreen
+import com.example.presentation.auth.activation.ActivationCodeScreen
+import com.example.presentation.auth.biometric.BiometricAuthScreen
+import com.example.presentation.auth.idscan.IdScanScreen
 import com.example.presentation.home.HomeScreen
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val activationStore by lazy { AppActivationStore(applicationContext) }
 

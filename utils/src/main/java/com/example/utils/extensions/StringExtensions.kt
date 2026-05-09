@@ -34,16 +34,6 @@ fun String.containsLabelKey(key: String): Boolean {
         line.contains(" $normalizedKey:")
 }
 
-fun String.extractValueAfterLabel(key: String): String {
-    val line = this
-    val normalizedLine = line.normalizeForLabelMatching()
-    val normalizedKey = key.normalizeForLabelMatching()
-    val keyIndex = normalizedLine.indexOf(normalizedKey)
-    if (keyIndex == -1) return ""
-    val startIndex = (keyIndex + normalizedKey.length).coerceAtMost(line.length)
-    return line.substring(startIndex).trim(' ', ':', '/', '-', '_')
-}
-
 fun String.sanitizeIdentityCandidate(): String {
     return this
         .replace("(s)", "", ignoreCase = true)

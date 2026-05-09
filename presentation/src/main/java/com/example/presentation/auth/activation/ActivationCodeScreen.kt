@@ -1,4 +1,4 @@
-package com.example.presentation.auth
+package com.example.presentation.auth.activation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

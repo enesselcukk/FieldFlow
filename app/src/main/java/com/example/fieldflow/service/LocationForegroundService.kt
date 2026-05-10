@@ -210,19 +210,23 @@ class LocationForegroundService : Service() {
                 zone.centerLat, zone.centerLng,
                 results
             )
-            val distanceMeters = results[0]
-            val isInsideNow = distanceMeters <= zone.radiusMeters
-
-            val wasInside = zoneStatesMutex.withLock {
+            val distanceMeters = results[0].toDouble()
+            val radius = zone.radiusMeters
+            val (prevInside, isInsideNow) = zoneStatesMutex.withLock {
                 val prev = zoneStates[zone.id]
-                zoneStates[zone.id] = isInsideNow
-                prev
+                val inside = when (prev) {
+                    null -> distanceMeters <= radius
+                    true -> distanceMeters <= radius + GEOFENCE_EXIT_HYSTERESIS_METERS
+                    false -> distanceMeters <= radius
+                }
+                zoneStates[zone.id] = inside
+                prev to inside
             }
 
-            if (wasInside == null) continue
+            if (prevInside == null) continue
 
             when {
-                wasInside && !isInsideNow -> {
+                prevInside && !isInsideNow -> {
                     saveGeofenceEvent(
                         GeofenceEvent(
                             zoneId = zone.id,
@@ -242,7 +246,7 @@ class LocationForegroundService : Service() {
                     
                     notificationHelper.sendGeofenceExitAlert(zone.id.toInt(), zone.name)
                 }
-                !wasInside && isInsideNow -> {
+                !prevInside && isInsideNow -> {
                     saveGeofenceEvent(
                         GeofenceEvent(
                             zoneId = zone.id,
@@ -264,6 +268,8 @@ class LocationForegroundService : Service() {
     }
 
     companion object {
+        private const val GEOFENCE_EXIT_HYSTERESIS_METERS = 25.0
+
         private val _isRunning = MutableStateFlow(false)
         val isRunningFlow: StateFlow<Boolean> = _isRunning
 

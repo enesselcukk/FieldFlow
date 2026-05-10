@@ -25,18 +25,22 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -60,6 +64,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.GeofenceEvent
 import com.example.domain.model.GeofenceZone
 import com.example.presentation.R
+import com.example.presentation.constants.MAPS_SHEET_PEEK_HEIGHT
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
@@ -74,6 +79,7 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
     viewModel: MapViewModel = hiltViewModel()
@@ -123,18 +129,51 @@ fun MapScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        if (hasLocationPermission) {
-            OsmMapView(
-                modifier = Modifier.fillMaxSize(),
-                trackPoints = uiState.trackPoints,
-                currentLocation = if (uiState.isPlaybackRunning)
-                    uiState.trackPoints.getOrNull(uiState.playbackIndex)
-                else uiState.currentLocation,
-                geofenceZones = uiState.geofenceZones,
-                isPlaybackRunning = uiState.isPlaybackRunning
-            )
-        } else {
+    val bottomSheetState = rememberStandardBottomSheetState(
+        initialValue = SheetValue.PartiallyExpanded,
+        skipHiddenState = true
+    )
+    val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = bottomSheetState)
+
+    if (hasLocationPermission) {
+        BottomSheetScaffold(
+            scaffoldState = scaffoldState,
+            sheetPeekHeight = MAPS_SHEET_PEEK_HEIGHT.dp,
+            sheetSwipeEnabled = true,
+            sheetDragHandle = { BottomSheetDefaults.DragHandle() },
+            sheetContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            containerColor = MaterialTheme.colorScheme.surface,
+            content = {
+                OsmMapView(
+                    modifier = Modifier.fillMaxSize(),
+                    trackPoints = uiState.trackPoints,
+                    currentLocation = if (uiState.isPlaybackRunning)
+                        uiState.trackPoints.getOrNull(uiState.playbackIndex)
+                    else uiState.currentLocation,
+                    geofenceZones = uiState.geofenceZones,
+                    isPlaybackRunning = uiState.isPlaybackRunning
+                )
+            },
+            sheetContent = {
+                ControlsSheetContent(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    isTracking = uiState.isTracking,
+                    isPlaybackRunning = uiState.isPlaybackRunning,
+                    hasTrackPoints = uiState.totalTrackCount >= 2,
+                    geofenceZones = uiState.geofenceZones,
+                    recentEvents = uiState.recentGeofenceEvents,
+                    onToggleTracking = viewModel::toggleTracking,
+                    onStartPlayback = { viewModel.startPlayback() },
+                    onStopPlayback = { viewModel.stopPlayback() },
+                    onAddZoneClick = { viewModel.onAddZoneClick() },
+                    onDeleteZone = viewModel::deleteZone
+                )
+            }
+        )
+    } else {
+        Box(modifier = Modifier.fillMaxSize()) {
             PermissionRequired(
                 onGrantClick = {
                     locationPermLauncher.launch(
@@ -146,22 +185,6 @@ fun MapScreen(
                 }
             )
         }
-
-        ControlPanel(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 24.dp, start = 16.dp, end = 16.dp),
-            isTracking = uiState.isTracking,
-            isPlaybackRunning = uiState.isPlaybackRunning,
-            hasTrackPoints = uiState.totalTrackCount >= 2,
-            geofenceZones = uiState.geofenceZones,
-            recentEvents = uiState.recentGeofenceEvents,
-            onToggleTracking = viewModel::toggleTracking,
-            onStartPlayback = { viewModel.startPlayback() },
-            onStopPlayback = { viewModel.stopPlayback() },
-            onAddZoneClick = { viewModel.onAddZoneClick() },
-            onDeleteZone = { viewModel.deleteZone(it) }
-        )
     }
 
     if (showDialog) {
@@ -307,7 +330,7 @@ private fun generateCirclePoints(center: GeoPoint, radiusMeters: Double, steps: 
 }
 
 @Composable
-private fun ControlPanel(
+private fun ControlsSheetContent(
     modifier: Modifier = Modifier,
     isTracking: Boolean,
     isPlaybackRunning: Boolean,
@@ -320,15 +343,10 @@ private fun ControlPanel(
     onAddZoneClick: () -> Unit,
     onDeleteZone: (Long) -> Unit
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    LazyColumn(
+        modifier = modifier.padding(top = 4.dp, bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        LazyColumn(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
             item {
                 Button(
                     onClick = onToggleTracking,
@@ -397,7 +415,6 @@ private fun ControlPanel(
                     EventRow(event = event)
                 }
             }
-        }
     }
 }
 

@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import com.example.domain.model.EventRecord
 import com.example.domain.model.GeofenceEvent
 import com.example.domain.model.LocationRecord
+import com.example.domain.model.ZoneGeofenceRuntimeState
 import com.example.domain.repository.SettingsRepository
 import com.example.domain.repository.StatusRepository
 import com.example.domain.usecase.event.SaveEventUseCase
@@ -40,6 +41,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
+import kotlin.math.min
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -59,7 +61,7 @@ class LocationForegroundService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var intervalJob: Job? = null
 
-    private val zoneStates = mutableMapOf<Long, Boolean?>()
+    private val zoneStates = mutableMapOf<Long, ZoneGeofenceRuntimeState>()
     private val zoneStatesMutex = Mutex()
 
     override fun onCreate() {
@@ -213,14 +215,36 @@ class LocationForegroundService : Service() {
             val distanceMeters = results[0].toDouble()
             val radius = zone.radiusMeters
             val (prevInside, isInsideNow) = zoneStatesMutex.withLock {
-                val prev = zoneStates[zone.id]
-                val inside = when (prev) {
-                    null -> distanceMeters <= radius
-                    true -> distanceMeters <= radius + GEOFENCE_EXIT_HYSTERESIS_METERS
-                    false -> distanceMeters <= radius
+                val prevState = zoneStates[zone.id]
+                val newState = when {
+                    prevState == null -> {
+                        val inside = distanceMeters <= radius
+                        ZoneGeofenceRuntimeState(logicalInside = inside, 0, 0)
+                    }
+                    prevState.logicalInside -> {
+                        val wantsExit = distanceMeters > radius + GEOFENCE_EXIT_HYSTERESIS_METERS
+                        val exitStreak = if (wantsExit) prevState.exitStreak + 1 else 0
+                        val stillInside = exitStreak < GEOFENCE_CONFIRMATION_SAMPLES
+                        ZoneGeofenceRuntimeState(
+                            logicalInside = stillInside,
+                            exitStreak = if (stillInside) exitStreak else 0,
+                            enterStreak = 0
+                        )
+                    }
+                    else -> {
+                        val enterTh = enterThresholdMeters(radius)
+                        val wantsEnter = distanceMeters <= enterTh
+                        val enterStreak = if (wantsEnter) prevState.enterStreak + 1 else 0
+                        val nowInside = enterStreak >= GEOFENCE_CONFIRMATION_SAMPLES
+                        ZoneGeofenceRuntimeState(
+                            logicalInside = nowInside,
+                            exitStreak = 0,
+                            enterStreak = if (nowInside) 0 else enterStreak
+                        )
+                    }
                 }
-                zoneStates[zone.id] = inside
-                prev to inside
+                zoneStates[zone.id] = newState
+                prevState?.logicalInside to newState.logicalInside
             }
 
             if (prevInside == null) continue
@@ -267,8 +291,18 @@ class LocationForegroundService : Service() {
         }
     }
 
+    private fun enterThresholdMeters(radius: Double): Double {
+        val margin = min(
+            GEOFENCE_ENTER_HYSTERESIS_METERS,
+            min(radius * 0.15, radius - 5.0).coerceAtLeast(0.0)
+        )
+        return (radius - margin).coerceAtLeast(radius * 0.55)
+    }
+
     companion object {
         private const val GEOFENCE_EXIT_HYSTERESIS_METERS = 25.0
+        private const val GEOFENCE_ENTER_HYSTERESIS_METERS = 15.0
+        private const val GEOFENCE_CONFIRMATION_SAMPLES = 2
 
         private val _isRunning = MutableStateFlow(false)
         val isRunningFlow: StateFlow<Boolean> = _isRunning

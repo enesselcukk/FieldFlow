@@ -35,4 +35,7 @@
     <string name="topbar_settings">Ayarlar</string>
     <string name="topbar_notification_detail">Uyarı Detayı</string>
     <string name="settings_icon_desc">Ayarlar</string>
+    <string name="security_root_warning">Bu cihaz rootlu veya değiştirilmiş görünüyor. Saklanan konum geçmişi ve olay kayıtları daha riskli olabilir.</string>
+    <string name="security_root_dialog_title">Cihaz güvenlik uyarısı</string>
+    <string name="security_root_acknowledge">Anladım</string>
 </resources>

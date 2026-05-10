@@ -15,7 +15,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import androidx.navigation3.runtime.NavKey
 import com.example.fieldflow.R
 import com.example.presentation.R as PresentationR
 import com.example.presentation.constants.NOTIFICATION_BADGE_MAX
@@ -24,7 +23,7 @@ import com.example.presentation.notification.NotificationListUiState
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MainTopBar(
-    currentRoute: NavKey?,
+    currentRoute: FieldFlowRoute?,
     backStackSize: Int,
     isActivated: Boolean,
     isBiometricVerified: Boolean,
@@ -34,6 +33,8 @@ internal fun MainTopBar(
     onSettingsClick: () -> Unit,
 ) {
     val topBarTitle = when (currentRoute) {
+        null,
+        is SplashRoute -> stringResource(R.string.app_name)
         is ScanRoute -> stringResource(R.string.topbar_scan)
         is ActivationRoute -> stringResource(R.string.topbar_activation)
         is BiometricRoute -> stringResource(R.string.topbar_biometric)
@@ -43,10 +44,9 @@ internal fun MainTopBar(
         is SettingsRoute -> stringResource(R.string.topbar_settings)
         is NotificationDetailRoute -> stringResource(R.string.topbar_notification_detail)
         is NotificationListRoute -> stringResource(PresentationR.string.topbar_notification_list)
-        else -> stringResource(R.string.app_name)
     }
 
-    val showTopBar = currentRoute !is SplashRoute
+    val showTopBar = currentRoute != null && currentRoute !is SplashRoute
     val canGoBack = backStackSize > 1 &&
         currentRoute !is HomeRoute &&
         currentRoute !is SplashRoute

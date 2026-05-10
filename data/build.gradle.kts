@@ -50,6 +50,9 @@ dependencies {
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 
+    implementation(libs.androidx.security.crypto)
+    implementation(libs.sqlcipher.android)
+
     // DataStore
     implementation(libs.datastore.preferences)
 

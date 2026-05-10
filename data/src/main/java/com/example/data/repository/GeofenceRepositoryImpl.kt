@@ -36,8 +36,6 @@ class GeofenceRepositoryImpl @Inject constructor(
     override fun observeRecentEvents(limit: Int): Flow<List<GeofenceEvent>> =
         eventDao.observeRecent(limit).map { list -> list.map { it.toDomain() } }
 
-    
-
     private fun GeofenceZone.toEntity() = GeofenceZoneEntity(
         id = id, name = name,
         centerLat = centerLat, centerLng = centerLng,

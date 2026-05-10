@@ -4,38 +4,41 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object ScanRoute : NavKey
+sealed interface FieldFlowRoute : NavKey
 
 @Serializable
-data object SplashRoute : NavKey
+data object SplashRoute : FieldFlowRoute
+
+@Serializable
+data object ScanRoute : FieldFlowRoute
 
 @Serializable
 data class ActivationRoute(
     val name: String,
-    val surname: String
-) : NavKey
+    val surname: String,
+) : FieldFlowRoute
 
 @Serializable
-data object BiometricRoute : NavKey
+data object BiometricRoute : FieldFlowRoute
 
 @Serializable
-data object HomeRoute : NavKey
+data object HomeRoute : FieldFlowRoute
 
 @Serializable
-data object MapRoute : NavKey
+data object MapRoute : FieldFlowRoute
 
 @Serializable
-data object EventLogRoute : NavKey
+data object EventLogRoute : FieldFlowRoute
 
 @Serializable
-data object SettingsRoute : NavKey
+data object SettingsRoute : FieldFlowRoute
+
+@Serializable
+data object NotificationListRoute : FieldFlowRoute
 
 @Serializable
 data class NotificationDetailRoute(
     val type: String,
     val timestamp: Long,
-    val extraArg: String? = null
-) : NavKey
-
-@Serializable
-data object NotificationListRoute : NavKey
+    val extraArg: String? = null,
+) : FieldFlowRoute

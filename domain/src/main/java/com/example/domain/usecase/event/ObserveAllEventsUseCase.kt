@@ -1,4 +1,4 @@
-package com.example.domain.usecase
+package com.example.domain.usecase.event
 
 import com.example.domain.model.EventRecord
 import com.example.domain.repository.EventRepository

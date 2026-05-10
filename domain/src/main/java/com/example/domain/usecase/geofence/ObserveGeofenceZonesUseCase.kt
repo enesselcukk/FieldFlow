@@ -1,4 +1,4 @@
-package com.example.domain.usecase
+package com.example.domain.usecase.geofence
 
 import com.example.domain.model.GeofenceZone
 import com.example.domain.repository.GeofenceRepository

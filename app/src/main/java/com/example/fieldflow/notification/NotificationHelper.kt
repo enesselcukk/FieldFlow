@@ -13,7 +13,7 @@ import com.example.domain.constants.NOTIF_TYPE_GEOFENCE
 import com.example.domain.constants.NOTIF_TYPE_INTERNET
 import com.example.domain.constants.NOTIF_TYPE_LOCATION
 import com.example.domain.model.NotificationRecord
-import com.example.domain.usecase.SaveNotificationUseCase
+import com.example.domain.usecase.notification.SaveNotificationUseCase
 import com.example.fieldflow.R
 import com.example.fieldflow.ui.activity.MainActivity
 import com.example.fieldflow.constants.BATTERY_CRITICAL_THRESHOLD

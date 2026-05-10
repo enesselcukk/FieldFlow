@@ -1,4 +1,4 @@
-package com.example.domain.usecase
+package com.example.domain.usecase.location
 
 import com.example.domain.constants.DAY_MS
 import com.example.domain.model.LocationRecord

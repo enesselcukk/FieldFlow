@@ -1,4 +1,4 @@
-package com.example.domain.usecase
+package com.example.domain.usecase.tracking
 
 import com.example.domain.repository.TrackingRepository
 import javax.inject.Inject

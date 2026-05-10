@@ -3,8 +3,8 @@ package com.example.presentation.eventlog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.model.EventRecord
-import com.example.domain.usecase.ObserveAllEventsUseCase
-import com.example.domain.usecase.UpdateEventNoteUseCase
+import com.example.domain.usecase.event.ObserveAllEventsUseCase
+import com.example.domain.usecase.event.UpdateEventNoteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

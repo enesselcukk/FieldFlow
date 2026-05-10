@@ -9,8 +9,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.repository.StatusRepository
 import com.example.domain.repository.TrackingRepository
-import com.example.domain.usecase.StartTrackingUseCase
-import com.example.domain.usecase.StopTrackingUseCase
+import com.example.domain.usecase.tracking.StartTrackingUseCase
+import com.example.domain.usecase.tracking.StopTrackingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -2,11 +2,11 @@ package com.example.presentation.notification
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.domain.usecase.DeleteAllNotificationsUseCase
-import com.example.domain.usecase.DeleteNotificationUseCase
-import com.example.domain.usecase.MarkAllNotificationsReadUseCase
-import com.example.domain.usecase.ObserveAllNotificationsUseCase
-import com.example.domain.usecase.ObserveUnreadNotificationCountUseCase
+import com.example.domain.usecase.notification.DeleteAllNotificationsUseCase
+import com.example.domain.usecase.notification.DeleteNotificationUseCase
+import com.example.domain.usecase.notification.MarkAllNotificationsReadUseCase
+import com.example.domain.usecase.notification.ObserveAllNotificationsUseCase
+import com.example.domain.usecase.notification.ObserveUnreadNotificationCountUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

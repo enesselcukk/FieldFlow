@@ -14,10 +14,10 @@ import com.example.domain.model.GeofenceEvent
 import com.example.domain.model.LocationRecord
 import com.example.domain.repository.SettingsRepository
 import com.example.domain.repository.StatusRepository
-import com.example.domain.usecase.GetAllGeofenceZonesUseCase
-import com.example.domain.usecase.SaveEventUseCase
-import com.example.domain.usecase.SaveGeofenceEventUseCase
-import com.example.domain.usecase.SaveLocationUseCase
+import com.example.domain.usecase.event.SaveEventUseCase
+import com.example.domain.usecase.geofence.GetAllGeofenceZonesUseCase
+import com.example.domain.usecase.geofence.SaveGeofenceEventUseCase
+import com.example.domain.usecase.location.SaveLocationUseCase
 import com.example.fieldflow.constants.BATTERY_LOW_THRESHOLD
 import com.example.fieldflow.constants.NOTIFICATION_ID_TRACKING
 import com.example.fieldflow.notification.NotificationHelper

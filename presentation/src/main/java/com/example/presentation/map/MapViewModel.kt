@@ -5,11 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.domain.model.GeofenceZone
 import com.example.domain.model.PlaybackState
 import com.example.domain.repository.TrackingRepository
-import com.example.domain.usecase.DeleteGeofenceZoneUseCase
-import com.example.domain.usecase.ObserveGeofenceZonesUseCase
-import com.example.domain.usecase.ObserveRecentGeofenceEventsUseCase
-import com.example.domain.usecase.ObserveRecentLocationsUseCase
-import com.example.domain.usecase.SaveGeofenceZoneUseCase
+import com.example.domain.usecase.geofence.DeleteGeofenceZoneUseCase
+import com.example.domain.usecase.geofence.ObserveGeofenceZonesUseCase
+import com.example.domain.usecase.geofence.ObserveRecentGeofenceEventsUseCase
+import com.example.domain.usecase.geofence.SaveGeofenceZoneUseCase
+import com.example.domain.usecase.location.ObserveRecentLocationsUseCase
 import com.example.presentation.constants.FLOW_TIMEOUT_MS
 import com.example.presentation.constants.PLAYBACK_STEP_MS
 import dagger.hilt.android.lifecycle.HiltViewModel

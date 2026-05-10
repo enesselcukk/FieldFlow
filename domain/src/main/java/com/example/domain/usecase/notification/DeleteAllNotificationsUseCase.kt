@@ -1,4 +1,4 @@
-package com.example.domain.usecase
+package com.example.domain.usecase.notification
 
 import com.example.domain.repository.NotificationRepository
 import javax.inject.Inject

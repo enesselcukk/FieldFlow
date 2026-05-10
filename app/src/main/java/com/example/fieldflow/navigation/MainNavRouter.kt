@@ -80,8 +80,4 @@ internal class MainNavRouter(
         backStack.clear()
         backStack.add(HomeRoute)
     }
-
-    companion object {
-        const val ACTIVATION_CODE = "123456"
-    }
 }

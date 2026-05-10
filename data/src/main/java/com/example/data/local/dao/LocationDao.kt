@@ -8,7 +8,7 @@ import com.example.data.local.entity.LocationEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface LocationDao {
+internal interface LocationDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: LocationEntity)

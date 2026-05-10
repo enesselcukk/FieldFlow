@@ -3,13 +3,21 @@ package com.example.fieldflow.navigation
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.example.fieldflow.R
+import com.example.fieldflow.activation.AppActivationStore
 import com.example.presentation.auth.activation.ActivationCodeScreen
 import com.example.presentation.auth.biometric.BiometricAuthScreen
 import com.example.presentation.auth.idscan.IdScanScreen
@@ -27,6 +35,7 @@ internal fun MainNavDisplay(
     activity: ComponentActivity,
     backStack: NavBackStack<NavKey>,
     router: MainNavRouter,
+    activationStore: AppActivationStore,
     isActivated: Boolean,
     notifUiState: NotificationListUiState,
     notificationViewModel: NotificationListViewModel,
@@ -45,9 +54,9 @@ internal fun MainNavDisplay(
             }
 
             entry<ActivationRoute> {
-                ActivationCodeScreen(
-                    expectedCode = MainNavRouter.ACTIVATION_CODE,
-                    onActivationSuccess = router::onActivationCodeSuccess
+                ActivationNavEntry(
+                    activationStore = activationStore,
+                    onActivationSuccess = router::onActivationCodeSuccess,
                 )
             }
 
@@ -99,4 +108,26 @@ internal fun MainNavDisplay(
         },
         modifier = modifier
     )
+}
+
+@Composable
+private fun ActivationNavEntry(
+    activationStore: AppActivationStore,
+    onActivationSuccess: () -> Unit,
+) {
+    var expectedCode by remember(activationStore) { mutableStateOf<String?>(null) }
+    LaunchedEffect(activationStore) {
+        expectedCode = activationStore.getExpectedActivationCode()
+    }
+    val code = expectedCode
+    if (code == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        ActivationCodeScreen(
+            expectedCode = code,
+            onActivationSuccess = onActivationSuccess,
+        )
+    }
 }

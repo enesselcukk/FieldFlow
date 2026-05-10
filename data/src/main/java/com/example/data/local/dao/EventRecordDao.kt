@@ -8,7 +8,7 @@ import com.example.data.local.entity.EventRecordEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface EventRecordDao {
+internal interface EventRecordDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: EventRecordEntity): Long

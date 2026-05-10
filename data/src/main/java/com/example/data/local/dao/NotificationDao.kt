@@ -8,7 +8,7 @@ import com.example.data.local.entity.NotificationEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface NotificationDao {
+internal interface NotificationDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: NotificationEntity): Long

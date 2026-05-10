@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
     tableName = "geofence_events",
     indices = [Index(value = ["timestamp"])]
 )
-data class GeofenceEventEntity(
+internal data class GeofenceEventEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val zoneId: Long,
     val zoneName: String,

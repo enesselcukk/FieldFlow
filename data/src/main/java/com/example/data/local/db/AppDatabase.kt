@@ -26,7 +26,7 @@ import com.example.data.local.entity.NotificationEntity
     version = 6,
     exportSchema = false
 )
-abstract class AppDatabase : RoomDatabase() {
+internal abstract class AppDatabase : RoomDatabase() {
     abstract fun locationDao(): LocationDao
     abstract fun geofenceZoneDao(): GeofenceZoneDao
     abstract fun geofenceEventDao(): GeofenceEventDao

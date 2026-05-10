@@ -10,7 +10,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class NotificationRepositoryImpl @Inject constructor(
+internal class NotificationRepositoryImpl @Inject constructor(
     private val dao: NotificationDao
 ) : NotificationRepository {
 

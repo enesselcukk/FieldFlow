@@ -25,7 +25,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class StatusRepositoryImpl @Inject constructor(
+internal class StatusRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : StatusRepository {
 

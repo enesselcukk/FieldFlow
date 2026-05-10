@@ -14,7 +14,7 @@ import org.osmdroid.config.Configuration as OsmdroidConfiguration
 import javax.inject.Inject
 
 @HiltAndroidApp
-class FieldFlowApplication : Application(), Configuration.Provider {
+internal class FieldFlowApplication : Application(), Configuration.Provider {
 
     @Inject lateinit var workerFactory: HiltWorkerFactory
 

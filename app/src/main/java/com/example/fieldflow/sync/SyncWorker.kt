@@ -24,7 +24,7 @@ import dagger.assisted.AssistedInject
 import java.util.concurrent.TimeUnit
 
 @HiltWorker
-class SyncWorker @AssistedInject constructor(
+internal class SyncWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted params: WorkerParameters,
     private val locationRepository: LocationRepository,

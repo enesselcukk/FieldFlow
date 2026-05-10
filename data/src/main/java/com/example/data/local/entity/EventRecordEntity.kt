@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
     tableName = "event_records",
     indices = [Index(value = ["timestamp"]), Index(value = ["is_synced"])]
 )
-data class EventRecordEntity(
+internal data class EventRecordEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val timestamp: Long,
     val type: String,

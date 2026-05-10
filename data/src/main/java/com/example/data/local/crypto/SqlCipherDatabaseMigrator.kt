@@ -6,7 +6,7 @@ import android.util.Log
 import net.sqlcipher.database.SQLiteDatabase
 import java.io.File
 
-object SqlCipherDatabaseMigrator {
+internal object SqlCipherDatabaseMigrator {
 
     private const val TAG = "SqlCipherMigrator"
     private const val DB_NAME = "fieldflow.db"

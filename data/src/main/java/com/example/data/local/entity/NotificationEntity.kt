@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
     tableName = "notifications",
     indices = [Index(value = ["timestamp"])]
 )
-data class NotificationEntity(
+internal data class NotificationEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val type: String,
     val timestamp: Long,

@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.Locale
 
 @Composable
-fun FieldFlowApp(
+internal fun FieldFlowApp(
     activity: ComponentActivity,
     pendingNavDestination: MutableStateFlow<String?>,
     activationStore: AppActivationStore

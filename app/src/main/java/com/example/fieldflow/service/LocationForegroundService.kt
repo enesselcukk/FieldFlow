@@ -46,7 +46,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @AndroidEntryPoint
-class LocationForegroundService : Service() {
+internal class LocationForegroundService : Service() {
 
     @Inject lateinit var saveLocation: SaveLocationUseCase
     @Inject lateinit var getAllGeofenceZones: GetAllGeofenceZonesUseCase

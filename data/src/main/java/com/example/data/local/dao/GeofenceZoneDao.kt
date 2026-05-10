@@ -8,7 +8,7 @@ import com.example.data.local.entity.GeofenceZoneEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface GeofenceZoneDao {
+internal interface GeofenceZoneDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: GeofenceZoneEntity)

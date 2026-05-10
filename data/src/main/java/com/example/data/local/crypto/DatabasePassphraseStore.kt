@@ -12,7 +12,7 @@ import javax.inject.Singleton
 import androidx.core.content.edit
 
 @Singleton
-class DatabasePassphraseStore @Inject constructor(
+internal class DatabasePassphraseStore @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
 

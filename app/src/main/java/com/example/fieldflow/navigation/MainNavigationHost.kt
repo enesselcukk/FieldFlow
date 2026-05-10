@@ -155,6 +155,7 @@ internal fun MainNavigationHost(
                 activity = activity,
                 backStack = backStack,
                 router = router,
+                activationStore = activationStore,
                 isActivated = isActivated,
                 notifUiState = notifUiState,
                 notificationViewModel = notificationViewModel

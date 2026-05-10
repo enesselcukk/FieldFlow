@@ -13,7 +13,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class GeofenceRepositoryImpl @Inject constructor(
+internal class GeofenceRepositoryImpl @Inject constructor(
     private val zoneDao: GeofenceZoneDao,
     private val eventDao: GeofenceEventDao
 ) : GeofenceRepository {

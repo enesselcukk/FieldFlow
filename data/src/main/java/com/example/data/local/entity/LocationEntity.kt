@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
     tableName = "location_records",
     indices = [Index(value = ["timestamp"]), Index(value = ["is_synced"])]
 )
-data class LocationEntity(
+internal data class LocationEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val latitude: Double,
     val longitude: Double,

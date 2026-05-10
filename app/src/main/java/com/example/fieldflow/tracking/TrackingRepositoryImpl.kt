@@ -11,7 +11,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class TrackingRepositoryImpl @Inject constructor(
+internal class TrackingRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : TrackingRepository {
 

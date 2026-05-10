@@ -10,7 +10,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class EventRepositoryImpl @Inject constructor(
+internal class EventRepositoryImpl @Inject constructor(
     private val dao: EventRecordDao
 ) : EventRepository {
 

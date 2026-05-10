@@ -1,9 +1,9 @@
 package com.example.presentation.home
 
+import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.PowerManager
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -28,12 +28,7 @@ class HomeViewModel @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
-    private val _runtimePermissions = MutableStateFlow(
-        RuntimePermissions(
-            isBatteryOptimizationIgnored = checkBatteryOptimization(),
-            hasNotificationPermission = checkNotificationPermission()
-        )
-    )
+    private val _runtimePermissions = MutableStateFlow(buildRuntimePermissions())
 
     val uiState: StateFlow<HomeUiState> = combine(
         statusRepository.observeConnectivity(),
@@ -45,46 +40,58 @@ class HomeViewModel @Inject constructor(
         HomeUiState(
             isOnline = isOnline,
             isLocationEnabled = isLocationEnabled,
-            isBatteryOptimizationIgnored = runtimePerms.isBatteryOptimizationIgnored,
             hasNotificationPermission = runtimePerms.hasNotificationPermission,
+            hasFineLocationPermission = runtimePerms.hasFineLocationPermission,
+            hasBackgroundLocationPermission = runtimePerms.hasBackgroundLocationPermission,
             batteryLevel = batteryLevel,
             isTracking = isTracking
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = HomeUiState()
+        initialValue = _runtimePermissions.value.let { perms ->
+            HomeUiState(
+                hasNotificationPermission = perms.hasNotificationPermission,
+                hasFineLocationPermission = perms.hasFineLocationPermission,
+                hasBackgroundLocationPermission = perms.hasBackgroundLocationPermission
+            )
+        }
     )
 
     fun toggleTracking() = trackingRepository.toggleTracking()
 
     fun refreshRuntimePermissions() {
-        _runtimePermissions.update {
-            RuntimePermissions(
-                isBatteryOptimizationIgnored = checkBatteryOptimization(),
-                hasNotificationPermission = checkNotificationPermission()
-            )
-        }
+        _runtimePermissions.update { buildRuntimePermissions() }
     }
 
-    private fun checkBatteryOptimization(): Boolean {
-        val pm = context.getSystemService(PowerManager::class.java)
-        return pm.isIgnoringBatteryOptimizations(context.packageName)
-    }
+    private fun buildRuntimePermissions() = RuntimePermissions(
+        hasNotificationPermission = checkNotificationPermission(),
+        hasFineLocationPermission = checkFineLocationPermission(),
+        hasBackgroundLocationPermission = checkBackgroundLocationPermission()
+    )
 
-    private fun checkNotificationPermission(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    private fun checkNotificationPermission(): Boolean =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(
-                context,
-                android.Manifest.permission.POST_NOTIFICATIONS
+                context, Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
-        } else {
-            true
-        }
-    }
+        } else true
+
+    private fun checkFineLocationPermission(): Boolean =
+        ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+    private fun checkBackgroundLocationPermission(): Boolean =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        } else true
 }
 
 private data class RuntimePermissions(
-    val isBatteryOptimizationIgnored: Boolean,
-    val hasNotificationPermission: Boolean
+    val hasNotificationPermission: Boolean,
+    val hasFineLocationPermission: Boolean,
+    val hasBackgroundLocationPermission: Boolean,
 )

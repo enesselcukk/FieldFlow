@@ -26,3 +26,16 @@ data object MapRoute : NavKey
 
 @Serializable
 data object EventLogRoute : NavKey
+
+@Serializable
+data object SettingsRoute : NavKey
+
+@Serializable
+data class NotificationDetailRoute(
+    val type: String,
+    val timestamp: Long,
+    val extraArg: String? = null
+) : NavKey
+
+@Serializable
+data object NotificationListRoute : NavKey

@@ -12,12 +12,16 @@ import androidx.core.content.ContextCompat
 import com.example.domain.model.EventRecord
 import com.example.domain.model.GeofenceEvent
 import com.example.domain.model.LocationRecord
+import com.example.domain.repository.SettingsRepository
 import com.example.domain.repository.StatusRepository
 import com.example.domain.usecase.GetAllGeofenceZonesUseCase
 import com.example.domain.usecase.SaveEventUseCase
 import com.example.domain.usecase.SaveGeofenceEventUseCase
 import com.example.domain.usecase.SaveLocationUseCase
+import com.example.fieldflow.constants.BATTERY_LOW_THRESHOLD
+import com.example.fieldflow.constants.NOTIFICATION_ID_TRACKING
 import com.example.fieldflow.notification.NotificationHelper
+import com.example.fieldflow.sync.SyncWorker
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -27,10 +31,17 @@ import com.google.android.gms.location.Priority
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @AndroidEntryPoint
 class LocationForegroundService : Service() {
@@ -41,20 +52,20 @@ class LocationForegroundService : Service() {
     @Inject lateinit var saveEvent: SaveEventUseCase
     @Inject lateinit var statusRepository: StatusRepository
     @Inject lateinit var notificationHelper: NotificationHelper
+    @Inject lateinit var settingsRepository: SettingsRepository
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var locationCallback: LocationCallback? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var intervalJob: Job? = null
 
-    
     private val zoneStates = mutableMapOf<Long, Boolean?>()
-
-    private var currentIntervalMs: Long = DEFAULT_INTERVAL_MS
+    private val zoneStatesMutex = Mutex()
 
     override fun onCreate() {
         super.onCreate()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        isRunning = true
+        setRunning(true)
         startMonitoringSystemEvents()
     }
 
@@ -73,6 +84,7 @@ class LocationForegroundService : Service() {
                 )
                 if (isOnline) {
                     notificationHelper.cancelInternetLostAlert()
+                    SyncWorker.schedule(applicationContext)
                 } else {
                     notificationHelper.sendInternetLostAlert()
                 }
@@ -98,27 +110,46 @@ class LocationForegroundService : Service() {
                 }
             }
         }
+        serviceScope.launch {
+            var isFirst = true
+            statusRepository.observeBatteryLevel().collect { level ->
+                if (isFirst) { isFirst = false; return@collect }
+                when {
+                    level in 0..BATTERY_LOW_THRESHOLD ->
+                        notificationHelper.sendBatteryLowAlert(level)
+                    level > BATTERY_LOW_THRESHOLD ->
+                        notificationHelper.cancelBatteryLowAlert()
+                }
+            }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val intervalMs = intent?.getLongExtra(EXTRA_INTERVAL_MS, currentIntervalMs)
-            ?: currentIntervalMs
-        currentIntervalMs = intervalMs
-
         notificationHelper.createChannels()
         startForeground(
-            NotificationHelper.NOTIFICATION_ID_TRACKING,
+            NOTIFICATION_ID_TRACKING,
             notificationHelper.buildTrackingNotification()
         )
-        restartLocationUpdates(intervalMs)
-
+        startObservingInterval()
         return START_STICKY
+    }
+
+    private fun startObservingInterval() {
+        intervalJob?.cancel()
+        intervalJob = serviceScope.launch {
+            settingsRepository.preferences
+                .map { it.locationIntervalSeconds * 1000L }
+                .distinctUntilChanged()
+                .collect { intervalMs ->
+                    restartLocationUpdates(intervalMs)
+                }
+        }
     }
 
     override fun onDestroy() {
         stopLocationUpdates()
         serviceScope.cancel()
-        isRunning = false
+        setRunning(false)
         super.onDestroy()
     }
 
@@ -181,11 +212,13 @@ class LocationForegroundService : Service() {
             )
             val distanceMeters = results[0]
             val isInsideNow = distanceMeters <= zone.radiusMeters
-            val wasInside = zoneStates[zone.id]
 
-            zoneStates[zone.id] = isInsideNow
+            val wasInside = zoneStatesMutex.withLock {
+                val prev = zoneStates[zone.id]
+                zoneStates[zone.id] = isInsideNow
+                prev
+            }
 
-            
             if (wasInside == null) continue
 
             when {
@@ -207,7 +240,7 @@ class LocationForegroundService : Service() {
                     )
                     
                     
-                    notificationHelper.sendGeofenceExitAlert(zone.id.toInt())
+                    notificationHelper.sendGeofenceExitAlert(zone.id.toInt(), zone.name)
                 }
                 !wasInside && isInsideNow -> {
                     saveGeofenceEvent(
@@ -231,11 +264,9 @@ class LocationForegroundService : Service() {
     }
 
     companion object {
-        const val EXTRA_INTERVAL_MS = "extra_interval_ms"
-        const val DEFAULT_INTERVAL_MS = 60_000L
+        private val _isRunning = MutableStateFlow(false)
+        val isRunningFlow: StateFlow<Boolean> = _isRunning
 
-        @Volatile
-        var isRunning: Boolean = false
-            private set
+        internal fun setRunning(value: Boolean) { _isRunning.value = value }
     }
 }

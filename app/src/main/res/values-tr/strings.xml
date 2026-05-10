@@ -21,8 +21,18 @@
     <string name="notif_tracking_text">Uygulama arka planda çalışıyor</string>
     <string name="notif_geofence_title">Güvenlik Uyarısı</string>
     <string name="notif_geofence_text">Bir bölge ihlali tespit edildi. Detaylar için uygulamayı açın.</string>
+    <string name="notif_geofence_detail">Cihaz güvenli bölgeden çıktı: %1$s</string>
     <string name="notif_internet_lost_title">Bağlantı Uyarısı</string>
     <string name="notif_internet_lost_text">Ağ bağlantısı kesildi. Detaylar için uygulamayı açın.</string>
+    <string name="notif_internet_lost_detail">Cihazın internet bağlantısı kesildi. Veri senkronizasyonu duraklatıldı. Bağlantı yeniden sağlandığında otomatik olarak devam edecek.</string>
     <string name="notif_location_disabled_title">Konum Servisi Kapatıldı</string>
     <string name="notif_location_disabled_text">Konum takibi durdu. Detaylar için uygulamayı açın.</string>
+    <string name="notif_location_disabled_detail">Cihazın konum servisi kapatıldı. Konum takibi askıya alındı. Takibin devam etmesi için lütfen konum servislerini yeniden etkinleştirin.</string>
+    <string name="notif_battery_low_title">Pil Uyarısı</string>
+    <string name="notif_battery_low_text">Pil seviyesi: %1$d%%. Detaylar için uygulamayı açın.</string>
+    <string name="notif_battery_low_detail">Pil seviyesi %1$d%%\'e düştü. Cihaz yakında kapanabilir. Kesintisiz takip için lütfen cihazı şarj edin.</string>
+
+    <string name="topbar_settings">Ayarlar</string>
+    <string name="topbar_notification_detail">Uyarı Detayı</string>
+    <string name="settings_icon_desc">Ayarlar</string>
 </resources>

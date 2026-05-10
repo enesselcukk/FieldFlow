@@ -3,13 +3,17 @@ package com.example.presentation.map
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.model.GeofenceZone
+import com.example.domain.model.PlaybackState
 import com.example.domain.repository.TrackingRepository
 import com.example.domain.usecase.DeleteGeofenceZoneUseCase
 import com.example.domain.usecase.ObserveGeofenceZonesUseCase
 import com.example.domain.usecase.ObserveRecentGeofenceEventsUseCase
 import com.example.domain.usecase.ObserveRecentLocationsUseCase
 import com.example.domain.usecase.SaveGeofenceZoneUseCase
+import com.example.presentation.constants.FLOW_TIMEOUT_MS
+import com.example.presentation.constants.PLAYBACK_STEP_MS
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,10 +23,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.osmdroid.util.GeoPoint
-import javax.inject.Inject
-import com.example.domain.model.PlaybackState
-
-private const val PLAYBACK_STEP_MS = 500L
 
 @HiltViewModel
 class MapViewModel @Inject constructor(
@@ -62,7 +62,7 @@ class MapViewModel @Inject constructor(
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
+        started = SharingStarted.WhileSubscribed(FLOW_TIMEOUT_MS),
         initialValue = MapUiState()
     )
 

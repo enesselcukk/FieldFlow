@@ -7,4 +7,6 @@ interface EventRepository {
     suspend fun saveEvent(event: EventRecord)
     fun observeAll(): Flow<List<EventRecord>>
     suspend fun updateNote(id: Long, note: String)
+    suspend fun getUnsyncedEvents(): List<EventRecord>
+    suspend fun markEventsSynced(ids: List<Long>, syncedAt: Long)
 }

@@ -5,8 +5,12 @@ data class EventRecord(
     val timestamp: Long,
     val type: EventType,
     val detail: String = "",
-    val note: String = ""
+    val note: String = "",
+    val syncedAt: Long? = null
 ) {
+    val isSynced: Boolean get() = syncedAt != null
+    val offlineDurationMs: Long? get() = syncedAt?.let { it - timestamp }
+
     enum class EventType {
         GEOFENCE_EXIT,
         GEOFENCE_ENTER,

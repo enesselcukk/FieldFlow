@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FieldFlow</string>
     <string name="detected_identity">Detected: %1$s %2$s</string>
@@ -20,8 +21,18 @@
     <string name="notif_tracking_text">App is running in the background</string>
     <string name="notif_geofence_title">Security Alert</string>
     <string name="notif_geofence_text">A zone violation has been detected. Open the app for details.</string>
+    <string name="notif_geofence_detail">The device has exited the safe zone: %1$s</string>
     <string name="notif_internet_lost_title">Connectivity Alert</string>
     <string name="notif_internet_lost_text">Network connection lost. Open the app for details.</string>
+    <string name="notif_internet_lost_detail">The device has lost its internet connection. Data synchronization has been paused. It will resume automatically when the connection is restored.</string>
     <string name="notif_location_disabled_title">Location Service Disabled</string>
     <string name="notif_location_disabled_text">Location tracking has stopped. Open the app for details.</string>
+    <string name="notif_location_disabled_detail">The device\'s location service has been turned off. Location tracking has been suspended. Please re-enable location services to continue tracking.</string>
+    <string name="notif_battery_low_title">Battery Warning</string>
+    <string name="notif_battery_low_text">Battery level: %1$d%%. Open the app for details.</string>
+    <string name="notif_battery_low_detail">Battery level has dropped to %1$d%%. Device may lose power soon. Please charge the device to ensure uninterrupted tracking.</string>
+
+    <string name="topbar_settings">Settings</string>
+    <string name="topbar_notification_detail">Alert Detail</string>
+    <string name="settings_icon_desc">Settings</string>
 </resources>

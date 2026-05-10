@@ -2,11 +2,13 @@ package com.example.presentation.home
 
 import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,14 +44,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.presentation.R
-import com.example.utils.extensions.openAppNotificationSettings
-import com.example.utils.extensions.launchSettingsSafely
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.presentation.R
+import com.example.utils.extensions.launchSettingsSafely
+import com.example.utils.extensions.openAppNotificationSettings
 
 @Composable
 fun HomeScreen(
@@ -62,9 +64,40 @@ fun HomeScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val notificationPermLauncher = rememberLauncherForActivityResult(
+    val backgroundLocationLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { viewModel.refreshRuntimePermissions() }
+
+    val fineLocationLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { results ->
+        viewModel.refreshRuntimePermissions()
+        val fineJustGranted = results[Manifest.permission.ACCESS_FINE_LOCATION] == true
+        val backgroundAlreadyGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        if (fineJustGranted && !backgroundAlreadyGranted) {
+            backgroundLocationLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        }
+    }
+
+    val notificationPermLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) {
+        viewModel.refreshRuntimePermissions()
+        val fineAlreadyGranted = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!fineAlreadyGranted) {
+            fineLocationLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -76,11 +109,18 @@ fun HomeScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    LaunchedEffect(uiState.hasNotificationPermission) {
-        if (!uiState.hasNotificationPermission &&
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-        ) {
-            notificationPermLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    LaunchedEffect(Unit) {
+        when {
+            !uiState.hasNotificationPermission && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
+                notificationPermLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+
+            !uiState.hasFineLocationPermission ->
+                fineLocationLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
         }
     }
 
@@ -117,23 +157,18 @@ fun HomeScreen(
             onFixClick = { context.launchSettingsSafely(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)) }
         )
 
-        StatusCard(
-            title = stringResource(R.string.status_background_title),
-            description = if (uiState.isBatteryOptimizationIgnored)
-                stringResource(R.string.status_background_granted)
-            else
-                stringResource(R.string.status_background_restricted),
-            isOk = uiState.isBatteryOptimizationIgnored,
-            actionLabel = stringResource(R.string.status_background_action),
-            onFixClick = {
-                context.launchSettingsSafely(
-                    Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                        data = Uri.parse("package:${context.packageName}")
-                    },
-                    fallback = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
-                )
-            }
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            StatusCard(
+                title = stringResource(R.string.status_background_location_title),
+                description = if (uiState.hasBackgroundLocationPermission)
+                    stringResource(R.string.status_background_location_granted)
+                else
+                    stringResource(R.string.status_background_location_denied),
+                isOk = uiState.hasBackgroundLocationPermission,
+                actionLabel = stringResource(R.string.status_background_location_action),
+                onFixClick = { backgroundLocationLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION) }
+            )
+        }
 
         StatusCard(
             title = stringResource(R.string.status_notification_title),

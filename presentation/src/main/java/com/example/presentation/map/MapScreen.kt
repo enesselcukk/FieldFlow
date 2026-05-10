@@ -2,6 +2,7 @@ package com.example.presentation.map
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -32,7 +33,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -47,6 +47,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -186,10 +187,36 @@ private fun OsmMapView(
     val geofenceFillColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f).toArgb()
     val geofenceOutlineColor = MaterialTheme.colorScheme.tertiary.toArgb()
 
+    val context = LocalContext.current
     val mapView = remember { mutableStateOf<MapView?>(null) }
     val centeredOnce = remember { mutableStateOf(false) }
 
     DisposableEffect(Unit) { onDispose { mapView.value?.onDetach() } }
+
+    LaunchedEffect(Unit) {
+        if (currentLocation == null) {
+            try {
+                val lm = context.getSystemService(LocationManager::class.java)
+                val providers = listOf(
+                    LocationManager.GPS_PROVIDER,
+                    LocationManager.NETWORK_PROVIDER,
+                    LocationManager.PASSIVE_PROVIDER
+                )
+                val lastKnown = providers
+                    .mapNotNull { provider ->
+                        @Suppress("MissingPermission")
+                        runCatching { lm.getLastKnownLocation(provider) }.getOrNull()
+                    }
+                    .maxByOrNull { it.time }
+
+                if (lastKnown != null && !centeredOnce.value) {
+                    val geoPoint = GeoPoint(lastKnown.latitude, lastKnown.longitude)
+                    mapView.value?.controller?.setCenter(geoPoint)
+                    centeredOnce.value = true
+                }
+            } catch (_: Exception) { }
+        }
+    }
 
     LaunchedEffect(currentLocation) {
         if (currentLocation != null && !centeredOnce.value) {

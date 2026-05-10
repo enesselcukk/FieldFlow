@@ -24,12 +24,21 @@ class EventRepositoryImpl @Inject constructor(
     override suspend fun updateNote(id: Long, note: String) =
         dao.updateNote(id, note)
 
+    override suspend fun getUnsyncedEvents(): List<EventRecord> =
+        dao.getUnsynced().map { it.toDomain() }
+
+    override suspend fun markEventsSynced(ids: List<Long>, syncedAt: Long) {
+        if (ids.isNotEmpty()) dao.markSynced(ids, syncedAt)
+    }
+
     private fun EventRecord.toEntity() = EventRecordEntity(
         id = id,
         timestamp = timestamp,
         type = type.name,
         detail = detail,
-        note = note
+        note = note,
+        isSynced = isSynced,
+        syncedAt = syncedAt
     )
 
     private fun EventRecordEntity.toDomain() = EventRecord(
@@ -37,6 +46,7 @@ class EventRepositoryImpl @Inject constructor(
         timestamp = timestamp,
         type = EventRecord.EventType.valueOf(type),
         detail = detail,
-        note = note
+        note = note,
+        syncedAt = syncedAt
     )
 }

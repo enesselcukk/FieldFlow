@@ -8,3 +8,9 @@ fun Long.toFormattedDate(): String {
     val fmt = SimpleDateFormat("dd MMM yyyy, HH:mm:ss", Locale.getDefault())
     return fmt.format(Date(this))
 }
+
+fun Long.toDateTimeShort(): String {
+    val fmt = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
+    return fmt.format(Date(this))
+}
+

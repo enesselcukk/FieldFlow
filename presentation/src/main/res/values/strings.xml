@@ -39,10 +39,10 @@
     <string name="status_location_off">Off</string>
     <string name="status_location_action">Location Settings</string>
 
-    <string name="status_background_title">Background Permission</string>
-    <string name="status_background_granted">Permission Granted</string>
-    <string name="status_background_restricted">Restricted (Battery Optimization Active)</string>
-    <string name="status_background_action">Grant Permission</string>
+    <string name="status_background_location_title">Background Location</string>
+    <string name="status_background_location_granted">Allow all the time</string>
+    <string name="status_background_location_denied">Only while using the app</string>
+    <string name="status_background_location_action">Grant Permission</string>
 
     <string name="status_notification_title">Notification Permission</string>
     <string name="status_notification_granted">Permission Granted</string>
@@ -100,4 +100,37 @@
 
     <string name="topbar_event_log">Event Records</string>
     <string name="open_event_log">Event Records</string>
+
+    <string name="notif_detail_section_title">Alert Details</string>
+    <string name="notif_detail_action_event_log">View Event Log</string>
+    <string name="notif_detail_action_home">Go to Dashboard</string>
+
+    <string name="notif_geofence_title">Security Alert</string>
+    <string name="notif_geofence_detail">The device has exited the safe zone: %1$s</string>
+    <string name="notif_internet_lost_title">Connectivity Alert</string>
+    <string name="notif_internet_lost_detail">The device has lost its internet connection. Data synchronization has been paused. It will resume automatically when the connection is restored.</string>
+    <string name="notif_location_disabled_title">Location Service Disabled</string>
+    <string name="notif_location_disabled_detail">The device\'s location service has been turned off. Location tracking has been suspended. Please re-enable location services to continue tracking.</string>
+    <string name="notif_battery_low_title">Battery Warning</string>
+    <string name="notif_battery_low_detail">Battery level has dropped to %1$d%%. Device may lose power soon. Please charge the device to ensure uninterrupted tracking.</string>
+
+    <string name="topbar_notification_list">Notifications</string>
+    <string name="notif_list_empty_title">No Notifications</string>
+    <string name="notif_list_empty_subtitle">Alerts will appear here when events occur.</string>
+    <string name="notif_list_delete_all">Clear All</string>
+    <string name="notif_list_confirm_delete_all_title">Clear All Notifications</string>
+    <string name="notif_list_confirm_delete_all_message">All notifications will be permanently deleted.</string>
+    <string name="notif_list_confirm_yes">Delete</string>
+    <string name="notif_list_confirm_no">Cancel</string>
+    <string name="notif_list_unread_badge">%1$d unread</string>
+
+    <string name="settings_language_title">Language</string>
+    <string name="settings_language_turkish">Türkçe</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_location_interval_title">Location Update Frequency</string>
+    <string name="settings_location_interval_locked_hint">Available after activation</string>
+    <string name="settings_theme_title">Theme</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_system">System Default</string>
 </resources>

@@ -40,10 +40,10 @@
     <string name="status_location_off">Kapalı</string>
     <string name="status_location_action">Konum Ayarları</string>
 
-    <string name="status_background_title">Arka Plan İzni</string>
-    <string name="status_background_granted">İzin Verildi</string>
-    <string name="status_background_restricted">Kısıtlı (Pil Optimizasyonu Aktif)</string>
-    <string name="status_background_action">İzin Ver</string>
+    <string name="status_background_location_title">Arka Plan Konum İzni</string>
+    <string name="status_background_location_granted">Her zaman izin ver</string>
+    <string name="status_background_location_denied">Yalnızca uygulama açıkken</string>
+    <string name="status_background_location_action">İzin Ver</string>
 
     <string name="status_notification_title">Bildirim İzni</string>
     <string name="status_notification_granted">İzin Verildi</string>
@@ -101,4 +101,37 @@
 
     <string name="topbar_event_log">Olay Kayıtları</string>
     <string name="open_event_log">Olay Kayıtları</string>
+
+    <string name="notif_detail_section_title">Uyarı Detayları</string>
+    <string name="notif_detail_action_event_log">Olay Kayıtlarını Görüntüle</string>
+    <string name="notif_detail_action_home">Panoya Git</string>
+
+    <string name="notif_geofence_title">Güvenlik Uyarısı</string>
+    <string name="notif_geofence_detail">Cihaz güvenli bölgeden çıktı: %1$s</string>
+    <string name="notif_internet_lost_title">Bağlantı Uyarısı</string>
+    <string name="notif_internet_lost_detail">Cihazın internet bağlantısı kesildi. Veri senkronizasyonu duraklatıldı. Bağlantı yeniden sağlandığında otomatik olarak devam edecek.</string>
+    <string name="notif_location_disabled_title">Konum Servisi Kapatıldı</string>
+    <string name="notif_location_disabled_detail">Cihazın konum servisi kapatıldı. Konum takibi askıya alındı. Takibin devam etmesi için lütfen konum servislerini yeniden etkinleştirin.</string>
+    <string name="notif_battery_low_title">Pil Uyarısı</string>
+    <string name="notif_battery_low_detail">Pil seviyesi %1$d%%\'e düştü. Cihaz yakında kapanabilir. Kesintisiz takip için lütfen cihazı şarj edin.</string>
+
+    <string name="topbar_notification_list">Bildirimler</string>
+    <string name="notif_list_empty_title">Bildirim Yok</string>
+    <string name="notif_list_empty_subtitle">Olaylar gerçekleştiğinde uyarılar burada görünecek.</string>
+    <string name="notif_list_delete_all">Tümünü Temizle</string>
+    <string name="notif_list_confirm_delete_all_title">Tüm Bildirimleri Temizle</string>
+    <string name="notif_list_confirm_delete_all_message">Tüm bildirimler kalıcı olarak silinecek.</string>
+    <string name="notif_list_confirm_yes">Sil</string>
+    <string name="notif_list_confirm_no">İptal</string>
+    <string name="notif_list_unread_badge">%1$d okunmamış</string>
+
+    <string name="settings_language_title">Dil</string>
+    <string name="settings_language_turkish">Türkçe</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_location_interval_title">Konum Güncelleme Sıklığı</string>
+    <string name="settings_location_interval_locked_hint">Aktivasyon sonrası kullanılabilir</string>
+    <string name="settings_theme_title">Tema</string>
+    <string name="settings_theme_light">Açık</string>
+    <string name="settings_theme_dark">Koyu</string>
+    <string name="settings_theme_system">Sistem Varsayılanı</string>
 </resources>

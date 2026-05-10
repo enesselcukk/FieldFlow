@@ -3,10 +3,12 @@ package com.example.data.di
 import com.example.data.repository.EventRepositoryImpl
 import com.example.data.repository.GeofenceRepositoryImpl
 import com.example.data.repository.LocationRepositoryImpl
+import com.example.data.repository.NotificationRepositoryImpl
 import com.example.data.repository.StatusRepositoryImpl
 import com.example.domain.repository.EventRepository
 import com.example.domain.repository.GeofenceRepository
 import com.example.domain.repository.LocationRepository
+import com.example.domain.repository.NotificationRepository
 import com.example.domain.repository.StatusRepository
 import dagger.Binds
 import dagger.Module
@@ -33,4 +35,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindEventRepository(impl: EventRepositoryImpl): EventRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNotificationRepository(impl: NotificationRepositoryImpl): NotificationRepository
 }

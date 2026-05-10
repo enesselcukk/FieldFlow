@@ -22,22 +22,36 @@ class LocationRepositoryImpl @Inject constructor(
         locationDao.deleteOlderThan(timestampMs)
     }
 
+    override suspend fun deleteSyncedOlderThan(timestampMs: Long) {
+        locationDao.deleteSyncedOlderThan(timestampMs)
+    }
+
     override fun getLocationsAfter(timestampMs: Long): Flow<List<LocationRecord>> =
         locationDao.getLocationsAfter(timestampMs).map { entities ->
             entities.map { it.toDomain() }
         }
 
+    override suspend fun getUnsyncedLocations(): List<LocationRecord> =
+        locationDao.getUnsynced().map { it.toDomain() }
+
+    override suspend fun markLocationsSynced(ids: List<Long>, syncedAt: Long) {
+        if (ids.isNotEmpty()) locationDao.markSynced(ids, syncedAt)
+    }
+
     private fun LocationRecord.toEntity() = LocationEntity(
         id = id,
         latitude = latitude,
         longitude = longitude,
-        timestamp = timestamp
+        timestamp = timestamp,
+        isSynced = isSynced,
+        syncedAt = syncedAt
     )
 
     private fun LocationEntity.toDomain() = LocationRecord(
         id = id,
         latitude = latitude,
         longitude = longitude,
-        timestamp = timestamp
+        timestamp = timestamp,
+        syncedAt = syncedAt
     )
 }

@@ -48,4 +48,8 @@ class IdScanViewModel @Inject constructor(
         val state = _uiState.value
         return IdentityInfo(name = state.name.trim(), surname = state.surname.trim())
     }
+
+    fun clearDetectedIdentity() {
+        _uiState.update { it.copy(name = "", surname = "", errorText = null) }
+    }
 }

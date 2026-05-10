@@ -2,6 +2,12 @@
 <resources>
     <string name="id_scan_title">Kimlik Kartı Tarama</string>
     <string name="id_scan_description">Kimlik kartınızın ön yüzünü kameraya gösterin ve tara butonuna dokunun.</string>
+    <string name="id_scan_frame_hint">Kartı çerçevenin içinde sabit tutun. İyi aydınlatma kullanın, yansımaları önleyin.</string>
+    <string name="id_scan_enter_manually">Manuel olarak gir</string>
+    <string name="id_scan_confirm_title">Bilgilerinizi onaylayın</string>
+    <string name="id_scan_confirm_description">Devam etmeden önce adınızı kontrol edin veya düzenleyin.</string>
+    <string name="id_scan_scan_again">Yeniden tara</string>
+    <string name="content_desc_back">Geri</string>
     <string name="camera_permission_required">Kamera izni gereklidir.</string>
     <string name="grant_camera_permission">Kamera iznine izin ver</string>
     <string name="scan_id_card">Kimlik Kartını Tara</string>

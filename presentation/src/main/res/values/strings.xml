@@ -1,6 +1,12 @@
 <resources>
     <string name="id_scan_title">ID Card Scan</string>
     <string name="id_scan_description">Show the front side of your ID card to the camera and tap scan.</string>
+    <string name="id_scan_frame_hint">Hold your card steady inside the frame. Use good lighting and avoid glare.</string>
+    <string name="id_scan_enter_manually">Enter details manually</string>
+    <string name="id_scan_confirm_title">Confirm your details</string>
+    <string name="id_scan_confirm_description">Review or edit your name before continuing.</string>
+    <string name="id_scan_scan_again">Scan again</string>
+    <string name="content_desc_back">Go back</string>
     <string name="camera_permission_required">Camera permission is required.</string>
     <string name="grant_camera_permission">Grant camera permission</string>
     <string name="scan_id_card">Scan ID Card</string>

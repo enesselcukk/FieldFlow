@@ -65,6 +65,7 @@ import com.example.domain.model.GeofenceEvent
 import com.example.domain.model.GeofenceZone
 import com.example.presentation.R
 import com.example.presentation.constants.MAPS_SHEET_PEEK_HEIGHT
+import com.example.presentation.constants.MAP_TRACK_LINE_WIDTH_DP
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
@@ -210,6 +211,11 @@ private fun OsmMapView(
     val geofenceFillColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f).toArgb()
     val geofenceOutlineColor = MaterialTheme.colorScheme.tertiary.toArgb()
 
+    val titleTrackStart = stringResource(R.string.map_track_start)
+    val titleLocationPin = stringResource(
+        if (isPlaybackRunning) R.string.map_playback_position else R.string.map_current_location
+    )
+
     val context = LocalContext.current
     val mapView = remember { mutableStateOf<MapView?>(null) }
     val centeredOnce = remember { mutableStateOf(false) }
@@ -261,48 +267,69 @@ private fun OsmMapView(
                 setTileSource(TileSourceFactory.MAPNIK)
                 setMultiTouchControls(true)
                 controller.setZoom(15.0)
+                val poly = Polyline().apply {
+                    outlinePaint.isAntiAlias = true
+                }
+                val markerStart = Marker(this).apply {
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                }
+                val locationMarker = Marker(this).apply {
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                }
+                overlays.add(poly)
+                overlays.add(markerStart)
+                overlays.add(locationMarker)
+                tag = OsmMapTrackLayers(poly, markerStart, locationMarker)
                 mapView.value = this
             }
         },
         update = { map ->
-            map.overlays.clear()
+            val layers = map.tag as OsmMapTrackLayers
+            val density = map.resources.displayMetrics.density
+            val trackStrokePx = MAP_TRACK_LINE_WIDTH_DP * density
+            val overlays = map.overlays
 
-            if (trackPoints.size >= 2) {
-                map.overlays.add(Polyline().apply {
-                    setPoints(trackPoints)
-                    outlinePaint.color = trackLineColor
-                    outlinePaint.strokeWidth = 10f
-                    outlinePaint.isAntiAlias = true
-                })
+            layers.polyline.apply {
+                outlinePaint.color = trackLineColor
+                outlinePaint.strokeWidth = trackStrokePx
+                outlinePaint.isAntiAlias = true
+                isEnabled = trackPoints.size >= 2
+                setPoints(trackPoints.toCollection(ArrayList()))
             }
 
-            if (trackPoints.isNotEmpty()) {
-                map.overlays.add(Marker(map).apply {
-                    position = trackPoints.first()
-                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                    title = "Başlangıç"
-                })
+            layers.markerStart.apply {
+                isEnabled = trackPoints.isNotEmpty()
+                title = titleTrackStart
+                if (trackPoints.isNotEmpty()) position = trackPoints.first()
             }
 
-            currentLocation?.let { loc ->
-                map.overlays.add(Marker(map).apply {
+            layers.locationMarker.apply {
+                val loc = currentLocation
+                if (loc != null) {
+                    isEnabled = true
                     position = loc
-                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                    title = "Şu anki konum"
-                })
+                    title = titleLocationPin
+                } else {
+                    isEnabled = false
+                }
             }
 
+            while (overlays.size > 3) {
+                overlays.removeAt(3)
+            }
+
+            val zoneOutlinePx = 4f * density
             for (zone in geofenceZones) {
                 val center = GeoPoint(zone.centerLat, zone.centerLng)
                 val circlePoints = generateCirclePoints(center, zone.radiusMeters)
-                map.overlays.add(Polygon().apply {
+                overlays.add(Polygon().apply {
                     points = circlePoints
                     fillPaint.color = geofenceFillColor
                     outlinePaint.color = geofenceOutlineColor
-                    outlinePaint.strokeWidth = 4f
+                    outlinePaint.strokeWidth = zoneOutlinePx
                     title = zone.name
                 })
-                map.overlays.add(Marker(map).apply {
+                overlays.add(Marker(map).apply {
                     position = center
                     setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                     title = zone.name
@@ -585,3 +612,9 @@ private fun PermissionRequired(onGrantClick: () -> Unit) {
         }
     }
 }
+
+private data class OsmMapTrackLayers(
+    val polyline: Polyline,
+    val markerStart: Marker,
+    val locationMarker: Marker,
+)

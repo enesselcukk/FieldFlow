@@ -187,7 +187,8 @@ internal class LocationForegroundService : Service() {
                             LocationRecord(
                                 latitude = location.latitude,
                                 longitude = location.longitude,
-                                timestamp = System.currentTimeMillis()
+                                timestamp = location.time.takeIf { it > 0L }
+                                    ?: System.currentTimeMillis()
                             )
                         )
                         checkGeofences(location)

@@ -104,12 +104,10 @@ Bu alt bölüm, tipik ödev / teknik şartname maddelerinin FieldFlow’daki kar
 - **Tekrar**: Yinelenen davranış mümkün olduğunca **domain use case** ve **repository** katmanına taşınır; paylaşılan arayüz parçaları gerektiğinde ayrıştırılır.
 - **Doğrulama**: Modüller arası **birim testleri** use case ve ViewModel gerilemelerine karşı koruma sağlar (bkz. [Kalite: test ve lint](#kalite-test-ve-lint)).
 
-*(Tam stil rehberinin yerini README alamaz; otomatik denetim için CI’ya ktlint/detekt ekleyebilirsiniz.)*
-
 ### Güvenlik (hassas veri + root)
 
 - **Şifreli saklama**: Konum geçmişi, olay günlükleri, bildirimler, geofence verisi vb. **aynı SQLCipher korumalı Room veritabanında** tutulur; parola **EncryptedSharedPreferences** içindedir. Ayrıntılar için bkz. [Veri yaşam döngüsü, şifreleme ve cihaz güvenliği](#veri-yaşam-döngüsü-şifreleme-ve-cihaz-güvenliği).
-- **Root / jailbreak**: Bu bir **Android** projesidir; **jailbreak** terimi iOS’a özgüdür. Burada **root tespiti** **`RootDetector`** ile (dosya / etiket sezgisel kontrolleri) yapılır. **`MainNavigationHost`** kullanıcıya **güvenlik diyalogu** gösterir ve onay ister; uygulama **zorunlu olarak kapatılmaz**.
+- **Root**: **`RootDetector`** (`utils`), rootlanmış bir Android ortamına işaret edebilecek **Build.TAGS** ve bilinen sistem yolu / ikili kombinasyonlarını (**`su`**, **Magisk**, **`Superuser.apk`** vb.; sabit liste **`RootDetector`** içindedir) **sezgisel** olarak tarar. **`MainNavigationHost`**, kullanıcının uyarıyı onayladığı **`AlertDialog`** gösterir; **uygulama süreci bu kontrol yüzünden otomatik sonlandırılmaz**.
 - **Sınırlar**: Root tespiti **en iyi çaba** düzeyindedir; sıkı politikalar için Play Integrity veya MDM ile birleştirmek gerekir.
 
 ### Hata yönetimi (kullanıcı vs teknik)

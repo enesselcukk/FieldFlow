@@ -104,12 +104,11 @@ This subsection maps common assignment / RFP-style expectations to what FieldFlo
 - **Duplication**: Repeated behavior is pushed toward **domain use cases** and **repository implementations** rather than copy-pasted across Composables; shared UI pieces are extracted where practical.
 - **Verification**: **Unit tests** across modules (see [Quality: tests and lint](#quality-tests-and-lint)) help guard regressions in use cases and ViewModels.
 
-*(README cannot replace a full style guide; adopt ktlint/detekt in CI if you need automated enforcement.)*
-
 ### Security (sensitive data + root)
 
 - **Encrypted storage**: Location history, event logs, notifications, geofence data, etc. live in the **same SQLCipher-backed Room database**; the passphrase is held in **EncryptedSharedPreferences**. Details are in [Data lifecycle, encryption, and device security](#data-lifecycle-encryption-and-device-security).
-- **Root / jailbreak**: This is an **Android** project; **jailbreak** applies to iOS. Here, **root detection** is implemented via **`RootDetector`** (heuristic file/tag checks). **`MainNavigationHost`** shows a **security dialog** that the user must acknowledge; the app is **not** blocked outright.
+- **Root**: **`RootDetector`** (`utils`) combines **`Build.TAGS`** hints and filesystem **path/binary** checks (**`su`**, common **Magisk** locations, **`Superuser.apk`**) typical of rooted Android installs. **`MainNavigationHost`** shows an **`AlertDialog`** the user must acknowledge; **`MainActivity`** keeps running (**no forced process exit from this gate alone).
+
 - **Limits**: Root detection is **best-effort**; pairing with Play Integrity or MDM is recommended for strict policies.
 
 ### Error handling (user-facing vs technical)

@@ -8,8 +8,13 @@ Saha ve operasyon tarzı akışlar için **Kotlin** ve **Jetpack Compose** ile g
 
 ---
 
+## Ekran kaydı
+
+---
+
 ## İçindekiler
 
+- [Ekran kaydı](#ekran-kaydı)
 - [Proje yapısı (modüller)](#proje-yapısı-modüller)
 - [Mimari](#mimari)
 - [Teknik gereksinimlerle uyum](#teknik-gereksinimlerle-uyum)

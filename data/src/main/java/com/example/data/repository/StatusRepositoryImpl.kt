@@ -26,7 +26,7 @@ import javax.inject.Singleton
 
 @Singleton
 internal class StatusRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : StatusRepository {
 
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)

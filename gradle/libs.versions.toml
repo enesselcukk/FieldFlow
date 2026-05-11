@@ -25,6 +25,8 @@ navigation3 = "1.1.1"
 cameraX = "1.6.1"
 sqlcipher = "4.5.4"
 securityCrypto = "1.1.0"
+androidxTestCore = "1.6.1"
+robolectric = "4.14.1"
 
 [libraries]
 # Core
@@ -99,6 +101,8 @@ androidx-camera-view = { group = "androidx.camera", name = "camera-view", versio
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidxTestCore" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }

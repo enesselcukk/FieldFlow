@@ -3,7 +3,7 @@ package com.example.utils.security
 import android.os.Build
 import java.io.File
 
-class RootDetector private constructor(
+class RootDetector internal constructor(
     private val fileExists: (String) -> Boolean = { File(it).exists() },
     private val buildTags: String = Build.TAGS,
 ) {

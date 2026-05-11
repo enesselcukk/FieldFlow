@@ -7,13 +7,16 @@ import org.junit.Test
 class RootDetectorTest {
 
     @Test
-    fun `compromised when test-keys in tags`() {
-        val detector = RootDetector(fileExists = { false }, buildTags = "release-keys,test-keys")
+    fun detectsTestKeysInBuildTags() {
+        val detector = RootDetector(
+            fileExists = { false },
+            buildTags = "release-keys,test-keys"
+        )
         assertTrue(detector.isDeviceCompromised())
     }
 
     @Test
-    fun `compromised when su binary path exists`() {
+    fun detectsSuBinaryPathPresent() {
         val detector = RootDetector(
             fileExists = { it == "/system/bin/su" },
             buildTags = "release-keys"
@@ -22,7 +25,7 @@ class RootDetectorTest {
     }
 
     @Test
-    fun `not compromised when clean`() {
+    fun reportsSafeWhenClean() {
         val detector = RootDetector(
             fileExists = { false },
             buildTags = "release-keys"
@@ -31,7 +34,7 @@ class RootDetectorTest {
     }
 
     @Test
-    fun `paths list is non-empty`() {
+    fun compromiseIndicatorPathsNonEmpty() {
         assertTrue(RootDetector.CompromiseIndicatorPaths.isNotEmpty())
     }
 }

@@ -55,30 +55,29 @@ Uygulama **katmanlı, Clean Architecture ilhamlı** bir yapıdadır:
 
 **Navigasyon** [AndroidX Navigation 3](https://developer.android.com/jetpack/androidx/releases/navigation) (`navigation3-runtime`, `navigation3-ui`) ve **Kotlin Serialization** ile serileştirilen rota anahtarları (`NavKey`) kullanılır.
 
+**Gradle modül bağımlılık grafiği:**
+
 ```mermaid
----
-title: FieldFlow Gradle modül grafiği
----
 flowchart TB
-    subgraph appMod["`app` modülü — Android Uygulama"]
-        shell["Önyükleme: Application, WorkManager, senk · MainActivity, navigasyon kabuğu"]
+    subgraph appMod["Gradle app modülü, Android Uygulama"]
+        shell["Önyükleme: Application, WorkManager, senk, MainActivity, navigasyon kabuğu"]
     end
 
-    subgraph presMod["`presentation` modülü — Android Library"]
-        ui["Compose arayüzü · ViewModel’ler"]
+    subgraph presMod["Gradle presentation modülü, Android Library"]
+        ui["Compose arayüzü, ViewModels"]
     end
 
-    subgraph dataMod["`data` modülü — Android Library"]
+    subgraph dataMod["Gradle data modülü, Android Library"]
         direction LR
-        roomLayer["Kalıcılık: Room · SQLCipher"]
-        prefLayer["Tercihler: DataStore · şifreleme"]
+        roomLayer["Kalıcılık: Room, SQLCipher"]
+        prefLayer["Tercihler: DataStore, şifreleme"]
     end
 
-    subgraph domMod["`domain` modülü — Android Library"]
-        domainCore["İş çekirdeği: modeller · use case’ler"]
+    subgraph domMod["Gradle domain modülü, Android Library"]
+        domainCore["İş çekirdeği: modeller, use-case sınıfları"]
     end
 
-    subgraph utilMod["`utils` modülü — Android Library"]
+    subgraph utilMod["Gradle utils modülü, Android Library"]
         helpers["Çapraz yardımcılar"]
     end
 

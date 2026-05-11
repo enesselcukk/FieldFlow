@@ -55,30 +55,29 @@ The app is organized in a **layered, Clean Architecture–inspired** split:
 
 **Navigation** uses [AndroidX Navigation 3](https://developer.android.com/jetpack/androidx/releases/navigation) (`navigation3-runtime`, `navigation3-ui`) with route keys (`NavKey`) serialized via **Kotlin Serialization**.
 
+**Gradle module dependency graph:**
+
 ```mermaid
----
-title: FieldFlow Gradle module graph
----
 flowchart TB
-    subgraph appMod["`app` module — Android Application"]
-        shell["Bootstrap: Application, WorkManager, sync • MainActivity, Navigation host"]
+    subgraph appMod["Gradle app module, Android Application"]
+        shell["Bootstrap: Application, WorkManager, sync, MainActivity, navigation host"]
     end
 
-    subgraph presMod["`presentation` module — Android Library"]
-        ui["Compose UI · ViewModels"]
+    subgraph presMod["Gradle presentation module, Android Library"]
+        ui["Compose UI, ViewModels"]
     end
 
-    subgraph dataMod["`data` module — Android Library"]
+    subgraph dataMod["Gradle data module, Android Library"]
         direction LR
-        roomLayer["Persistence: Room · SQLCipher"]
-        prefLayer["Preferences: DataStore · Crypto"]
+        roomLayer["Persistence: Room, SQLCipher"]
+        prefLayer["Preferences: DataStore, Crypto"]
     end
 
-    subgraph domMod["`domain` module — Android Library"]
-        domainCore["Business core: Models · Use cases"]
+    subgraph domMod["Gradle domain module, Android Library"]
+        domainCore["Business core: models, use cases"]
     end
 
-    subgraph utilMod["`utils` module — Android Library"]
+    subgraph utilMod["Gradle utils module, Android Library"]
         helpers["Cross-cutting helpers"]
     end
 

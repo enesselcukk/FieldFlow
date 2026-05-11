@@ -1,6 +1,6 @@
 # FieldFlow
 
-**Aktivasyon kodu (bu depodaki derleme):** **`123456`** — ilk kurulumda açılan aktivasyon ekranında **tam olarak** bu altı rakamı girin. Bu değer yalnızca **demo / şablondur**; üretim için gömülü kimlik bilgisini yenileyin.
+**Aktivasyon kodu (bu depodaki derleme):** **`123456`** — ilk kurulumda açılan aktivasyon ekranında **tam olarak** bu altı rakamı girin. Bu değer yalnızca **demo / şablondur**.
 
 Saha ve operasyon tarzı akışlar için **Kotlin** ve **Jetpack Compose** ile geliştirilmiş çok modüllü bir Android uygulamasıdır. Kimlik tarama (OCR), biyometrik doğrulama, etkinleştirme, harita ve konum, bildirimler, arka planda senkronizasyon ve olay günlüğünü bir araya getirir.
 
@@ -583,13 +583,3 @@ Saklama, SQLCipher, etkinleştirme kriptosu, root tespiti ve konum izlemenin kod
 - **İmza anahtarları** veya API sırlarını repoya koymayın; CI gizli değişkenleri veya yerel `local.properties` / güvenli mağaza kullanın.
 - **Konum**, **kamera** ve **biyometrik** veriler hassastır; Play Console ve gizlilik politikası açıklamalarını güncelleyin.
 - Yerel şifreleme, çevrimdışı depolama saldırılarına karşı eşiği yükseltir; **tam kurumsal bir tehdit modeli** değildir.
-
----
-
-## Lisans
-
-Bu depoda açık kaynak lisans dosyası yoksa, kullanım koşullarını proje sahibiyle netleştirin.
-
----
-
-*Bu README, depodaki `build.gradle.kts`, `settings.gradle.kts`, `gradle/libs.versions.toml`, `AndroidManifest.xml` ve navigasyon kaynaklarına göre hazırlanmıştır. Bağımlılık sürümleri değiştiğinde tabloları güncellemek için önce `libs.versions.toml` dosyasına bakın.*

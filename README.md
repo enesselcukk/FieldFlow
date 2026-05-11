@@ -55,31 +55,32 @@ The app is organized in a **layered, Clean Architecture–inspired** split:
 
 ```mermaid
 flowchart TB
-    subgraph app_mod["app"]
-        A[Application / WorkManager / Sync]
-        B[MainActivity / Nav host]
+    subgraph APP["Gradle app"]
+        A["Application, WorkManager, Sync"]
+        B["MainActivity, navigation host"]
     end
-    subgraph pres[":presentation"]
-        P[Compose UI / ViewModels]
+    subgraph PRES["Gradle presentation"]
+        P["Compose UI, ViewModels"]
     end
-    subgraph dom[":domain"]
-        D[Models / Use cases]
+    subgraph DOM["Gradle domain"]
+        D["Models, use cases"]
     end
-    subgraph data_mod[":data"]
-        R[Room + SQLCipher]
-        DS[DataStore / Crypto]
+    subgraph DATA["Gradle data"]
+        R["Room, SQLCipher"]
+        S["DataStore, Crypto"]
     end
-    subgraph util[":utils"]
-        U[Helpers]
+    subgraph UTIL["Gradle utils"]
+        U["Shared helpers"]
     end
+
     B --> P
     P --> D
     P --> U
-    data_mod --> D
-    app_mod --> pres
-    app_mod --> data_mod
-    app_mod --> dom
-    pres --> dom
+    R --> D
+    S --> D
+    B --> R
+    B --> S
+    B --> D
 ```
 
 ---

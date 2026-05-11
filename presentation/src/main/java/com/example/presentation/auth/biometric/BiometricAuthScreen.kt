@@ -3,6 +3,7 @@ package com.example.presentation.auth.biometric
 import android.Manifest
 import android.content.Context
 import android.hardware.biometrics.BiometricPrompt
+import android.util.Log
 import android.os.Build
 import android.os.CancellationSignal
 import androidx.annotation.RequiresPermission
@@ -30,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.example.presentation.R
 import com.example.utils.extensions.findActivity
+
+private const val BiometricAuthTag = "BiometricAuth"
 
 @RequiresPermission(Manifest.permission.USE_BIOMETRIC)
 @Composable
@@ -68,7 +71,7 @@ fun BiometricAuthScreen(
                 authenticateWithBiometric(
                     context = context,
                     onSuccess = onAuthenticated,
-                    onError = { errorMessage = it }
+                    onError = { errorMessage = it.takeUnless { msg -> msg.isBlank() } }
                 )
             },
             modifier = Modifier.fillMaxWidth()
@@ -106,7 +109,7 @@ private fun authenticateWithBiometric(
                     context.getString(R.string.biometric_prompt_cancel),
                     executor
                 ) { _, _ ->
-                    onError(context.getString(R.string.biometric_unavailable))
+                    onError("")
                 }
                 .build()
 
@@ -119,7 +122,11 @@ private fun authenticateWithBiometric(
                     }
 
                     override fun onAuthenticationError(errorCode: Int, errString: CharSequence?) {
-                        onError(errString?.toString().orEmpty())
+                        Log.w(
+                            BiometricAuthTag,
+                            "Prompt error code=$errorCode detail=$errString",
+                        )
+                        onError(messageForPromptAuthenticationError(context, errorCode))
                     }
 
                     override fun onAuthenticationFailed() {
@@ -132,6 +139,33 @@ private fun authenticateWithBiometric(
         BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> onError(context.getString(R.string.biometric_no_hardware))
         BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> onError(context.getString(R.string.biometric_unavailable))
         BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> onError(context.getString(R.string.biometric_not_enrolled))
-        else -> onError("${context.getString(R.string.biometric_unavailable)} (code=$status)")
+        else -> {
+            Log.w(BiometricAuthTag, "BiometricManager.canAuthenticate status=$status")
+            onError(context.getString(R.string.biometric_unavailable))
+        }
+    }
+}
+
+@Suppress("MagicNumber")
+private fun messageForPromptAuthenticationError(context: Context, errorCode: Int): String {
+    return when (errorCode) {
+        BiometricPrompt.BIOMETRIC_ERROR_CANCELED,
+        BiometricPrompt.BIOMETRIC_ERROR_USER_CANCELED,
+        13,
+        -> ""
+        BiometricPrompt.BIOMETRIC_ERROR_LOCKOUT,
+        BiometricPrompt.BIOMETRIC_ERROR_LOCKOUT_PERMANENT,
+        -> context.getString(R.string.biometric_error_lockout)
+        BiometricPrompt.BIOMETRIC_ERROR_TIMEOUT -> context.getString(R.string.biometric_error_timeout)
+        BiometricPrompt.BIOMETRIC_ERROR_NO_BIOMETRICS -> context.getString(R.string.biometric_not_enrolled)
+        BiometricPrompt.BIOMETRIC_ERROR_HW_UNAVAILABLE,
+        BiometricPrompt.BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
+        BiometricPrompt.BIOMETRIC_ERROR_NO_SPACE,
+        BiometricPrompt.BIOMETRIC_ERROR_HW_NOT_PRESENT,
+        BiometricPrompt.BIOMETRIC_ERROR_VENDOR,
+        BiometricPrompt.BIOMETRIC_ERROR_NO_DEVICE_CREDENTIAL,
+        BiometricPrompt.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED,
+        -> context.getString(R.string.biometric_unavailable)
+        else -> context.getString(R.string.biometric_unavailable)
     }
 }

@@ -15,11 +15,10 @@
     <string name="first_name">Ad</string>
     <string name="last_name">Soyad</string>
     <string name="continue_button">Devam Et</string>
-    <string name="camera_capture_error">Fotoğraf çekilemedi: %1$s</string>
-    <string name="unknown_error">bilinmeyen hata</string>
+    <string name="id_scan_photo_capture_failed">Fotoğraf çekilemedi. Kartı iyi aydınlatma ve sabit tutmayla tekrar deneyin ya da bilgilerinizi aşağıdan manuel girin.</string>
+    <string name="id_scan_text_read_failed">Kimlik bilgisi net okunamadı. Işığı artırın, kartı düz tutup yeniden tarayın ya da bilgileri manuel girin.</string>
     <string name="ocr_not_found">Ad/soyad otomatik tespit edilemedi. Lütfen manuel olarak girin.</string>
-    <string name="ocr_failed">OCR başarısız: %1$s</string>
-    <string name="image_processing_failed">Görüntü işlenemedi.</string>
+    <string name="image_processing_failed">Bu fotoğraf işlenemedi. Tekrar tarayın ya da bilgileri manuel girin.</string>
     <string name="activation_title">Uygulamayı Etkinleştir</string>
     <string name="activation_description">Tek kullanımlık aktivasyon kodunuzu girin.</string>
     <string name="activation_code_label">Aktivasyon Kodu</string>
@@ -35,6 +34,8 @@
     <string name="biometric_unavailable">Biyometrik kimlik doğrulama şu an kullanılamıyor.</string>
     <string name="biometric_not_enrolled">Kayıtlı biyometrik bulunamadı. Lütfen cihaz ayarlarından kayıt olun.</string>
     <string name="biometric_failed">Biyometrik doğrulama başarısız.</string>
+    <string name="biometric_error_lockout">Çok fazla deneme yapıldı. Kısa bir süre sonra tekrar deneyin veya cihaz ekran kilidinizi kullanın.</string>
+    <string name="biometric_error_timeout">Kimlik doğrulama zaman aşımına uğradı. Lütfen tekrar deneyin.</string>
 
     <string name="status_internet_title">İnternet Bağlantısı</string>
     <string name="status_internet_online">Çevrimiçi</string>

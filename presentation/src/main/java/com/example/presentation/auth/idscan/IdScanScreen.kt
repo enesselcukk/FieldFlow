@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -82,17 +83,13 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.IdentityInfo
 import com.example.presentation.R
+import com.example.presentation.constants.IdCardAspectWidthOverHeight
+import com.example.presentation.constants.IdScanPhase
+import com.example.presentation.constants.IdScanTag
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.io.File
-
-private enum class IdScanPhase {
-    Capture,
-    ConfirmDetails,
-}
-
-private const val IdCardAspectWidthOverHeight = 1.586f
 
 @Composable
 fun IdScanScreen(
@@ -185,10 +182,9 @@ fun IdScanScreen(
     }
 
     val ocrNotFoundMessage = stringResource(R.string.ocr_not_found)
-    val cameraCaptureErrorPrefix = stringResource(R.string.camera_capture_error, "")
-    val ocrFailedPrefix = stringResource(R.string.ocr_failed, "")
+    val photoCaptureFailedMessage = stringResource(R.string.id_scan_photo_capture_failed)
+    val textReadFailedMessage = stringResource(R.string.id_scan_text_read_failed)
     val imageProcessingFailedMessage = stringResource(R.string.image_processing_failed)
-    val unknownErrorMessage = stringResource(R.string.unknown_error)
 
     when (phase) {
         IdScanPhase.Capture -> {
@@ -215,10 +211,9 @@ fun IdScanScreen(
                             pendingPostCapture = false
                             viewModel.onOcrError(errorMsg)
                         },
-                        cameraCaptureErrorPrefix = cameraCaptureErrorPrefix,
-                        ocrFailedPrefix = ocrFailedPrefix,
+                        photoCaptureFailedMessage = photoCaptureFailedMessage,
+                        textReadFailedMessage = textReadFailedMessage,
                         imageProcessingFailedMessage = imageProcessingFailedMessage,
-                        unknownErrorMessage = unknownErrorMessage,
                     )
                 },
             )
@@ -566,10 +561,9 @@ private fun captureAndRunOcr(
     imageCapture: ImageCapture,
     onRawTextReady: (String) -> Unit,
     onError: (String) -> Unit,
-    cameraCaptureErrorPrefix: String,
-    ocrFailedPrefix: String,
+    photoCaptureFailedMessage: String,
+    textReadFailedMessage: String,
     imageProcessingFailedMessage: String,
-    unknownErrorMessage: String,
 ) {
     val tempFile = File.createTempFile("id_scan_", ".jpg", context.cacheDir)
     val outputOptions = ImageCapture.OutputFileOptions.Builder(tempFile).build()
@@ -585,14 +579,18 @@ private fun captureAndRunOcr(
                     uri = uri,
                     onRawTextReady = onRawTextReady,
                     onError = onError,
-                    ocrFailedPrefix = ocrFailedPrefix,
+                    textReadFailedMessage = textReadFailedMessage,
                     imageProcessingFailedMessage = imageProcessingFailedMessage,
-                    unknownErrorMessage = unknownErrorMessage,
                 )
             }
 
             override fun onError(exception: ImageCaptureException) {
-                onError("$cameraCaptureErrorPrefix${exception.message ?: unknownErrorMessage}")
+                Log.w(
+                    IdScanTag,
+                    "Image capture failed; imageCaptureError=${exception.imageCaptureError}",
+                    exception,
+                )
+                onError(photoCaptureFailedMessage)
             }
         },
     )
@@ -603,9 +601,8 @@ private fun runOcr(
     uri: Uri,
     onRawTextReady: (String) -> Unit,
     onError: (String) -> Unit,
-    ocrFailedPrefix: String,
+    textReadFailedMessage: String,
     imageProcessingFailedMessage: String,
-    unknownErrorMessage: String,
 ) {
     try {
         val image = InputImage.fromFilePath(context, uri)
@@ -617,10 +614,12 @@ private fun runOcr(
                 recognizer.close()
             }
             .addOnFailureListener { e ->
-                onError("$ocrFailedPrefix${e.message ?: unknownErrorMessage}")
+                Log.w(IdScanTag, "ML Kit TextRecognition failed", e)
+                onError(textReadFailedMessage)
                 recognizer.close()
             }
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        Log.w(IdScanTag, "InputImage or OCR setup failed", e)
         onError(imageProcessingFailedMessage)
     }
 }

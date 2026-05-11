@@ -1,0 +1,591 @@
+# FieldFlow
+
+Saha ve operasyon tarzı akışlar için **Kotlin** ve **Jetpack Compose** ile geliştirilmiş çok modüllü bir Android uygulamasıdır. Kimlik tarama (OCR), biyometrik doğrulama, etkinleştirme, harita ve konum, bildirimler, arka planda senkronizasyon ve olay günlüğünü bir araya getirir.
+
+**English:** [README.md](README.md)
+
+---
+
+## İçindekiler
+
+- [Proje yapısı (modüller)](#proje-yapısı-modüller)
+- [Mimari](#mimari)
+- [Teknik gereksinimlerle uyum](#teknik-gereksinimlerle-uyum)
+- [Teknoloji yığını](#teknoloji-yığını)
+- [Özellikler](#özellikler)
+- [Çevrimdışı çalışma](#çevrimdışı-çalışma)
+- [İzinler ve arka plan davranışı](#izinler-ve-arka-plan-davranışı)
+- [Bildirimler ve uyarılar](#bildirimler-ve-uyarlar)
+- [Olay günlüğü (denetim izi)](#olay-günlüğü-denetim-izi)
+- [Veri yaşam döngüsü, şifreleme ve cihaz güvenliği](#veri-yaşam-döngüsü-şifreleme-ve-cihaz-güvenliği)
+- [Gereksinimler](#gereksinimler)
+- [Derleme ve çalıştırma](#derleme-ve-çalıştırma)
+- [Kalite: test ve lint](#kalite-test-ve-lint)
+- [Sürekli entegrasyon (CI)](#sürekli-entegrasyon-ci)
+- [Güvenlik ve gizlilik notları](#güvenlik-ve-gizlilik-notları)
+- [Lisans](#lisans)
+
+---
+
+## Proje yapısı (modüller)
+
+| Modül | Tür | Rol |
+|--------|-----|-----|
+| **`:app`** | Android Application | `Application` sınıfı, `MainActivity`, navigasyon kabuğu, Hilt kökü, WorkManager yapılandırması, OSMDroid başlatma, ağ üzerinden senkron planlama, ön planda konum servisi |
+| **`:presentation`** | Android Library | Jetpack Compose arayüzleri, ViewModel katmanı, CameraX, ML Kit OCR (kimlik tarama ekranı), harita ekranı (OSMDroid), biyometrik ve ayar ekranları |
+| **`:domain`** | Android Library | İş kuralları ve modeller; çerçeveden mümkün olduğunca bağımsız katman |
+| **`:data`** | Android Library | Kalıcılık: Room, SQLCipher ile şifreli veritabanı, DataStore, AndroidX Security Crypto, Play Services Location, ML Kit |
+| **`:utils`** | Android Library | Ortak yardımcılar (ör. güvenlik / root tespiti) |
+
+Çoklu modül yapılandırması `settings.gradle.kts` içindedir; bağımlılık sürümleri **Version Catalog** (`gradle/libs.versions.toml`) ile merkezi yönetilir.
+
+---
+
+## Mimari
+
+Uygulama **katmanlı, Clean Architecture ilhamlı** bir yapıdadır:
+
+- **Presentation**: Arayüz (Compose), kullanıcı etkileşimi, ViewModel.
+- **Domain**: Modeller ve iş kuralları.
+- **Data**: Repository / veri kaynakları, şifreli Room depolama, tercihler.
+
+**Bağımlılık enjeksiyonu** [Dagger Hilt](https://dagger.dev/hilt/) ile yapılır; işleme **KSP** üzerinden çalışır.
+
+**Navigasyon** [AndroidX Navigation 3](https://developer.android.com/jetpack/androidx/releases/navigation) (`navigation3-runtime`, `navigation3-ui`) ve **Kotlin Serialization** ile serileştirilen rota anahtarları (`NavKey`) kullanılır.
+
+```mermaid
+flowchart TB
+    subgraph APP["Gradle app"]
+        A["Application, WorkManager, Sync"]
+        B["MainActivity, navigation host"]
+    end
+    subgraph PRES["Gradle presentation"]
+        P["Compose UI, ViewModels"]
+    end
+    subgraph DOM["Gradle domain"]
+        D["Models, use cases"]
+    end
+    subgraph DATA["Gradle data"]
+        R["Room, SQLCipher"]
+        S["DataStore, Crypto"]
+    end
+    subgraph UTIL["Gradle utils"]
+        U["Shared helpers"]
+    end
+
+    B --> P
+    P --> D
+    P --> U
+    R --> D
+    S --> D
+    B --> R
+    B --> S
+    B --> D
+```
+
+---
+
+## Teknik gereksinimlerle uyum
+
+Bu alt bölüm, tipik ödev / teknik şartname maddelerinin FieldFlow’daki karşılığını özetler.
+
+### Mimari: katmanlı ayrım ve arayüz deseni
+
+- **Katmanlar**: Kod tabanı, yukarıda anlatılan **katmanlı (Clean Architecture ilhamlı)** sınırları kullanır: **presentation** (arayüz), **domain** (modeller + use case’ler), **data** (Room repository’leri, DataStore, platform köprüleri). Bağımlılıklar **domain**’e doğru içeridir.
+- **Arayüz deseni**: Sunum katmanında birincil desen **MVVM**’dir; **MVI** birincil desen olarak kullanılmaz:
+  - Jetpack **`ViewModel`** + **`StateFlow`** / `*UiState` veri sınıfları (`IdScanUiState`, `MapUiState`, vb.).
+  - Compose ekranları durumu yaşam döngüsüne uygun şekilde toplar ve eylemleri ViewModel veya lambda’lara iletir.
+  - **`UseCase`** sınıfları tek sorumluluğu domain’de kapsar (`SaveLocationUseCase`, `ObserveRecentLocationsUseCase`, vb.).
+- **Sunum deseni notu**: Uygulama genelinde tek bir sealed `UiEvent` reducer kullanılmaz; durum güncellemeleri ekran bazlı ViewModel’lerde tutulur. Sonuç yapı **MVVM + tek yönlü durum akışı**dır; katı olay tabanlı MVI deposu değildir.
+
+### Kod kalitesi
+
+- **İsimlendirme**: Paketler ve tipler yaygın Kotlin/Android kalıplarına uyar (`*Repository`, `*UseCase`, `*ViewModel`, `*Screen`).
+- **Tekrar**: Yinelenen davranış mümkün olduğunca **domain use case** ve **repository** katmanına taşınır; paylaşılan arayüz parçaları gerektiğinde ayrıştırılır.
+- **Doğrulama**: Modüller arası **birim testleri** use case ve ViewModel gerilemelerine karşı koruma sağlar (bkz. [Kalite: test ve lint](#kalite-test-ve-lint)).
+
+*(Tam stil rehberinin yerini README alamaz; otomatik denetim için CI’ya ktlint/detekt ekleyebilirsiniz.)*
+
+### Güvenlik (hassas veri + root)
+
+- **Şifreli saklama**: Konum geçmişi, olay günlükleri, bildirimler, geofence verisi vb. **aynı SQLCipher korumalı Room veritabanında** tutulur; parola **EncryptedSharedPreferences** içindedir. Ayrıntılar için bkz. [Veri yaşam döngüsü, şifreleme ve cihaz güvenliği](#veri-yaşam-döngüsü-şifreleme-ve-cihaz-güvenliği).
+- **Root / jailbreak**: Bu bir **Android** projesidir; **jailbreak** terimi iOS’a özgüdür. Burada **root tespiti** **`RootDetector`** ile (dosya / etiket sezgisel kontrolleri) yapılır. **`MainNavigationHost`** kullanıcıya **güvenlik diyalogu** gösterir ve onay ister; uygulama **zorunlu olarak kapatılmaz**.
+- **Sınırlar**: Root tespiti **en iyi çaba** düzeyindedir; sıkı politikalar için Play Integrity veya MDM ile birleştirmek gerekir.
+
+### Hata yönetimi (kullanıcı vs teknik)
+
+- **İlke**: Hatalar geliştirici için **`Log`** ile kayda alınır; arayüzde ise **`strings.xml`** içindeki **kısa, yönlendirici** metinler gösterilir; ham `Exception.message` kullanıcıya düşürülmez.
+- **Örnekler**:
+  - **Kimlik tarama**: CameraX / ML Kit hatalarında `id_scan_photo_capture_failed`, `id_scan_text_read_failed`, `image_processing_failed` gibi kaynaklar kullanılır; teknik ayrıntı **`Log.w`** ile kalır.
+  - **Biyometrik**: `BiometricPrompt` hata kodları **`messageForPromptAuthenticationError`** ile kullanıcı güvenli dizelere (`biometric_unavailable`, kilit, zaman aşımı vb.) çevrilir; çerçeveden gelen ham metin gösterilmez.
+- **Denetlenecek noktalar**: Yeni ekranlarda aynı kural korunmalı—Compose / Toast üzerinde **`exception.message`** doğrudan gösterilmemeli.
+
+---
+
+## Teknoloji yığını
+
+Aşağıdaki tablolar projede **doğrudan** kullanılan başlıca kütüphane ve araçları özetler. Tam sürümler `gradle/libs.versions.toml` içindeki **refs** ile uyumludur.
+
+### Platform ve dil
+
+| Bileşen | Notlar |
+|---------|--------|
+| **Kotlin** | 2.0.21 |
+| **Android Gradle Plugin (AGP)** | 8.10.1 |
+| **KSP** | 2.0.21-1.0.28 |
+| **JVM hedefi (kaynak)** | Java 11 (`compileOptions` / `kotlinOptions.jvmTarget`) |
+| **minSdk / compileSdk / targetSdk** | 24 / 36 / 36 |
+| **Uygulama kimliği** | `com.example.fieldflow` |
+
+### AndroidX ve arayüz
+
+| Kütüphane | Sürüm (ref) | Kullanım |
+|-----------|-------------|----------|
+| **core-ktx** | 1.18.0 | Kotlin uzantıları |
+| **Activity Compose** | 1.11.0 | `ComponentActivity` + Compose |
+| **Compose BOM** | 2024.09.00 | Compose sürüm hizalama |
+| **Material 3** | (BOM) | Tasarım sistemi |
+| **material-icons-extended** | (BOM) | Geniş ikon seti (`presentation`) |
+| **lifecycle-runtime-ktx** | 2.9.4 | Yaşam döngüsü |
+| **lifecycle-viewmodel-compose** | 2.9.4 | ViewModel + Compose |
+| **navigation-compose** | 2.8.5 | Katalogda tanımlı; modüller ağırlıklı olarak Navigation 3 kullanır |
+| **Navigation 3** runtime + ui | 1.1.1 | Tip güvenli geri yığın navigasyonu |
+| **Biometric** | 1.1.0 | Parmak izi / yüz kilidi |
+| **CameraX** (core, camera2, lifecycle, view) | 1.6.1 | Kamera önizleme ve yakalama |
+| **WorkManager** (KTX) | 2.9.1 | Arka plan işleri |
+| **DataStore Preferences** | 1.1.1 | Tercihler / hafif yapılandırma |
+| **Room** (runtime, ktx) | 2.7.0 | Yerel ilişkisel veri |
+| **security-crypto** | 1.1.0 | Keystore destekli güvenli tercihler |
+| **SQLCipher (android-database-sqlcipher)** | 4.5.4 | Şifreli SQLite |
+
+### Google, harita ve konum
+
+| Kütüphane | Sürüm | Kullanım |
+|-----------|--------|----------|
+| **Play Services Location** | 21.3.0 | Konum API’leri |
+| **ML Kit Text Recognition** | 16.0.1 | Kimlik / metin OCR |
+| **OSMDroid** | 6.1.20 | Açık harita karosu tabanlı harita görünümü |
+
+### DI ve asenkron kod
+
+| Kütüphane | Sürüm | Kullanım |
+|-----------|--------|----------|
+| **Hilt** (Android) | 2.51.1 | Uygulama geneli DI |
+| **Hilt Navigation Compose** | 1.2.0 | Compose ile Hilt |
+| **Hilt Work** + **Hilt Compiler (AndroidX)** | 1.2.0 | WorkManager worker enjeksiyonu |
+| **Kotlin Coroutines** (android) | 1.8.1 | Asenkron akışlar |
+| **kotlinx-serialization-json** | 1.7.3 | Rota ve yapılandırma serileştirmesi |
+
+### Test
+
+| Kütüphane | Sürüm | Kullanım |
+|-----------|--------|----------|
+| **JUnit 4** | 4.13.2 | Birim testleri |
+| **AndroidX Test JUnit** | 1.3.0 | Enstrümantasyon test altyapısı |
+| **Espresso** | 3.7.0 | UI testleri |
+| **kotlinx-coroutines-test** | 1.8.1 | Dispatcher kontrolü |
+| **AndroidX Test Core** | 1.6.1 | Test double’ları / Android bileşenleri |
+| **Robolectric** | 4.14.1 | JVM üzerinde Android birim testleri |
+| **Compose UI Test (JUnit4)** | (BOM) | Compose UI testleri |
+
+### Araç zinciri
+
+- **Gradle Wrapper** (CI’da doğrulanır: `gradle/actions/wrapper-validation`)
+- **Version Catalog** (`libs.versions.toml`)
+- Release derlemeleri: **R8** kod küçültme ve kaynak budama (`app` modülünde etkin)
+
+---
+
+## Özellikler
+
+Kullanıcı akışı (özet):
+
+1. **Açılış / kimlik tarama**: ML Kit OCR ve CameraX ile `IdScanScreen`.
+2. **Etkinleştirme**: Taramadan sonra `ActivationCodeScreen` aktivasyon kodu akışı.
+3. **Biyometrik doğrulama**: `BiometricAuthScreen`.
+4. **Ana sayfa**: `HomeScreen` — harita ve olay günlüğüne geçiş.
+5. **Harita**: OSMDroid tabanlı `MapScreen`.
+6. **Olay günlüğü**: `EventLogScreen`.
+7. **Bildirimler**: Liste ve detay ekranları; `MainActivity` ekleriyle derin bağlantı tarzı yönlendirme.
+8. **Ayarlar**: `SettingsScreen`.
+
+### Ayarlar tercihleri (`SettingsScreen`)
+
+**`MainNavDisplay`**, **`SettingsScreen(isActivated = …)`** çağrısına etkinleşme bayrağı geçirir; tamamlanmamış kurulumdaysa **`SettingsSectionCard`** ilgili bölümü kilitliyor (**`presentation/.../SettingsScreen.kt`**). Tercihler **`SettingsRepositoryImpl`** (**Preferences DataStore**) üzerinden tutulur; **`activation_prefs`** ile aynı şifreli mağaza değildir (bkz. **[Ayarlar ve sırlar](#ayarlar-ve-sırlar)**). **`SettingsViewModel`**, **`UserPreferences`** çıktısını **`StateFlow`** ile yayar.
+
+**Dil.** **Türkçe** (**`AppLanguage.TURKISH`**, kod **`tr`**) ile **İngilizce** (**`AppLanguage.ENGLISH`**, kod **`en`**) seçimleri iki **`ElevatedFilterChip`** ile yapılır. **`FieldFlowApp`**, **`prefs.language`** değişince **`Locale.setDefault`** ve **`Activity.resources.updateConfiguration`** kullanarak kaynak seçimini **`values`** / **`values-tr`** arasında kaydırır; **`LocalConfiguration`** **`CompositionLocalProvider`** ile yenilenir (**`MainActivity`** yeniden yaratmadan Compose metinleri güncellenir).
+
+**Konum güncelleme sıklığı.** **`LOCATION_INTERVALS`** ile **30 / 60 / 120 / 300** saniye seçenekleri sunulur. **`isActivated` false** iken çipler devre dışıdır (**`locked = true`** + **`lockedHint`** metni **`strings`** kaynaklarında). Aktivasyon sonrası **`setLocationInterval`**, **`location_interval_seconds`** değerini yazar (**`UserPreferences`** şemasında öntanımlı **60** saniye). Fused güncelleme zincirine mirası için bkz. **[Örnekleme sıklığı ve yerel kalıcılık](#örnekleme-sıklığı-ve-yerel-kalıcılık)**.
+
+**Tema.** **Açık**, **koyu** ve **sistem (cihaz gece modu)** çipleri **`AppTheme.LIGHT`**, **`DARK`**, **`SYSTEM`** ile eşlenir; ilk değerler **`SYSTEM`**. **`FieldFlowTheme`**, sistem modundayken **`isSystemInDarkTheme()`** okur ve yalnızca **`prefs.theme == SYSTEM`** iken **Material 3** **`dynamicColor`** bayrağı açık kalır (**`FieldFlowApp`**).
+
+### İlk kurulum: kimlik OCR, aktivasyon kodu ve sonraki biyometrik giriş
+
+**`AppActivationStore.isActivated`** akışı **false** olduğunda **`MainNavigationHost`**, **`SplashRoute`** üzerinden **`ScanRoute`**’a geçer; böylece ilk oturumda kullanıcı **`IdScanScreen`** ile karşılanır.
+
+**Kart yakalama ve OCR.** Arayüz metni (**`presentation/src/main/res`** altındaki kaynak dosyalar, ör. Türkçe **`id_scan_description`**) kimliğin **ön yüzünün** kameraya gösterilmesini söyler; çerçeve **`IdCardViewfinderOverlay`** ile hizalanır. **CameraX** **`ImageCapture`** kare yakalar; **ML Kit Text Recognition** OCR (**`captureAndRunOcr`**) çıktısını **`IdScanViewModel`** ve **`IdentityTextParser`** ad/soyad biçiminde **`IdentityInfo`** olarak ayrıştırır. **Ayrıntıları elle gir** yolu (**`IdScanConfirmContent`**) fotoğraf çekmeden aynı onay akışına girer ve **`MainNavRouter.onIdentityDetected`** çağrılır.
+
+Onaydan sonra **`onIdentityDetected`**, parametre olarak taşınan ad/soyad ile **`ActivationRoute`** satırına **`NavBackStack`** üzerinden eklenir (**`NavKey`** tipleri ile serileştirilmiş rota anahtarı).
+
+**Aktivasyon.** **`ActivationCodeScreen`**, kullanıcı girişini **`AppActivationStore.getExpectedActivationCode()`** sonucu ile karşılaştırır; beklenen değer uygulamaya gömülü AES-GCM yükünden türetilir, ardından donanım **Keystore** AES-GCM ile **`activation_prefs` DataStore** içinde yeniden mühürlenebilir. Bu şablon uygulamada **SMS veya uzaktan tek kullanımlık şifre** dağıtan bir sunucu yoktur; kod, yapı taşması içinde yerel olarak belirlenen sabit beklenir. **Eşleşme** olduğunda **`onActivationCodeSuccess`**, **`is_activated = true`** yazar (**`setActivated`**), **`MainNavigationHost`** içinde **`rememberSaveable`** ile tutulan **`isBiometricVerified`** bayrağını **true** yapar ve **`HomeRoute`**’a gider — dolayısıyla **aynı aktivasyon oturumunda** **BiometricPrompt** atlanır. **`is_activated`** silinmediği sürece kimlik tarama ve kod ekranı tekrar edilmez; veri sıfırlandığında zincir yeniden işler.
+
+**Sonraki açılışlar.** Yeni bir **`MainActivity`** örneğinde **`isBiometricVerified`** varsayılan **false**’tur; **`isActivated` true** ve bayrak **false** iken **`MainNavigationHost`**, **`BiometricRoute`** üzerinden **`BiometricAuthScreen`** gösterir. Kod **`BiometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)`** sonra **`BiometricPrompt`** kullanır — yüz, parmak izi veya cihazın “zayıf biyometri” olarak sunduğu yöntemler OEM’e bağlıdır (**Face ID**/parmak izi benzeri, sunucuya gitmez). Başarıda **`HomeRoute`** açılır. **`rememberSaveable`**, süreç yeniden oluşumlarında **`true`** saklayabilir; her soğuk açılışta **mutlaka** biyometrik isteyen politikalar **`SavedStateRegistry`** davranışını gözden geçirmelidir.
+
+### Güzergâh oynatma
+
+Harita ekranı, ayrı bir medya zaman çizgisinden çok saklanmış konum artıkları üzerinden hareketin görsel olarak yeniden oluşturulmasını sunar. Son dönem konumlar **`ObserveRecentLocationsUseCase`** ile **`MapViewModel`**’e düşer; çizilmiş rota **`MapUiState`** üzerinden poliline yansır. İz için en az **iki** kayıtlı nokta bulunduğunda alt sayfada çıkan denetim **`startPlayback()`** çağrısına bağlanır; bu da kapsamlı bir coroutine işi başlatır. **`PlaybackState`** ve indeks alanı (**`presentation`** modülünde **`PLAYBACK_STEP_MS`**, adım süresi **500 ms**) her beklemeli adımda ilerleyerek polilin yalnızca o ana kadarki önekini görünür kılar ve vurgulanan konum imi o anda seçilen örnekle hizalanır. **`stopPlayback()`**, işlemi iptal eder ve geçici indeksi sıfırlar — normal görünümde tam iz, **`uiState`** bileşimi kurallarına göre yeniden gösterilir. Oynatma yalnızca gözlemci arkasındaki şifreli Room verisinden beslenir; inceleme sırasında karo indirmesi veya dış servis çağrısı gerektirmez.
+
+### Iz penceresi ve “güncel konum” imi
+
+`MapScreen`, iz **`Polyline`** parçalarını **`MapUiState.trackPoints`** listesinden alır; bu liste **`MapViewModel`** içinde **`ObserveRecentLocationsUseCase`** çıkışından türer. Zincir **`DAY_MS`** kullanarak (**24 × 60 × 60 × 1000** ms) **`getLocationsAfter(System.currentTimeMillis() - DAY_MS)`** ile **`timestamp`** değeri bu geriye dönüş penceresinin içinde kalan **`location_records`** örneklerini Flow ile sunar; **`LocationDao`** sorgusu **`ORDER BY timestamp ASC`** sıralamasını uygular. Ekranda görünür örnekler **`SaveLocationUseCase`** budamasına da bağlıdır; süre politikasıyla birlikte değerlendirmek için bkz. [Veri yaşam döngüsü, şifreleme ve cihaz güvenliği](#veri-yaşam-döngüsü-şifreleme-ve-cihaz-güvenliği) içindeki **Konum geçmişi: 24 saatlik pencere (ve 7 günlük güvenlik ağı)**.
+
+**Güncel konum** başlığı altında gösterilen im **`MapUiState.currentLocation`** alanındadır; **`MapViewModel`** bunu sözü edilen sıralı noktalarda **`records.lastOrNull()`** ile atar — bu, Compose yüzünde yalnızca harita için açılmış, **`FusedLocationProviderClient`** tabanlı ayrı bir **sürekli konum yayını ile** güncellenen bir okuma değildir. **`LocationForegroundService`** izleme sırasında her **`LocationDao.insert`** sonrasında **`Room`** Flow’unun yenilenmesi ile im son kalıcı koordinata geçer; yeni düzeltme yazılmadıkça cihaz hareket etse bile görsel sabit kalabilir. **`MapScreen`**, daha önce hiç kayıtlı iz yokken yalnızca **ilk** merkezlemeyi yaklaştırmak için **`LocationManager#getLastKnownLocation`** okuyabilir (**`LaunchedEffect`**, `currentLocation` boşken); bu yol günlük iz çizgisini beslemez.
+
+**Güzergâh oynatma** etkinken im **`OsmMapView`** içinde **`trackPoints.getOrNull(playbackIndex)`** ile o adımdaki örneği gösterir; **`lastOrNull()`** semantiğinden ayrılır.
+
+Arka planda:
+
+- Senkron için **WorkManager**; `FieldFlowApplication` doğrulanmış internet geldiğinde senkronu planlamak için **ağ geri çağrısı** kaydeder, ayrıca periyodik yedek plan vardır.
+- **`LocationForegroundService`**: `location` ön plan servisi türü.
+- **OSMDroid**: önbellek ve kullanıcı aracısı `Application.onCreate` içinde yapılandırılır.
+
+---
+
+## Çevrimdışı çalışma
+
+Uygulama ayrı bir “çevrimdışı mod” anahtarı sunmaz; **yetkili kaynağı cihaz veritabanı** olarak ele alır ve yalnızca işletim sistemi **kullanılabilir bağlantı** bildirdiğinde ağa bağlı arka plan işlerini planlar.
+
+### Bağlantı yokken yerel kalıcılık
+
+**Konumlar**
+
+- **`LocationForegroundService`**, düzeltmeleri **`FusedLocationProviderClient`** üzerinden **paket verisi olmadan** da talep edebilir. GNSS / fused mantığı uygunsa **Wi‑Fi ve mobil veri kapalıyken** bile koordinat üretilebilir.
+- Her kabul edilen düzeltme **`SaveLocationUseCase`** → **`LocationRepository`** → **`LocationDao.insert`** zinciriyle yazılır. Bu yolda **internet kontrolü yoktur**: kesinti **kalıcı yazmayı engellemez**.
+- Satırlar **`location_records`** (`LocationEntity`) içinde, bir senkron geçişine kadar **`is_synced = false`** olarak durur.
+
+**Olay kayıtları**
+
+- **`SaveEventUseCase`**, **`event_records`** tablosuna doğrudan yazar (aynı şifreli Room veritabanı). Bağlantı değişimleri civarında **`LocationForegroundService`** içinde **`StatusRepository.observeConnectivity()`** durumu değişince üretilen **`INTERNET_LOST`** / **`INTERNET_RESTORED`** kayıtları buna örnektir — tamamen **önce yerel** akıştır.
+- Geofence yaşam döngüsü ve diğer etkinlik kayıtları aynı repository yolunu kullanır.
+
+**Depolama özellikleri**
+
+- Her iki veri türü de **SQLCipher korumalı Room** (`fieldflow.db`) içindedir; çevrimdışı birikim [Veri yaşam döngüsü, şifreleme ve cihaz güvenliği](#veri-yaşam-döngüsü-şifreleme-ve-cihaz-güvenliği) bölümündeki **beklemede şifreleme** ile aynı koruma düzeyinden yararlanır.
+- **Senkronize edilmemiş** konum satırları, senkronize olanlara göre **daha uzun** tutulur (**7 gün** penceresi, karşılığında senkronize için **24 saat** budaması) — kısa süreli kesintilerde **`SyncWorker`** çalışmadan noktaların düşmesini önlemek için bilinçli tasarımdır (ayrıntılar için [Veri yaşam döngüsü…](#veri-yaşam-döngüsü-şifreleme-ve-cihaz-güvenliği) içindeki konum saklama tablosu).
+
+### Bağlantı yeniden kurulduğunda otomatik işlem
+
+**Tetikleyiciler**
+
+1. **`FieldFlowApplication`**, **`ConnectivityManager.NetworkCallback`** kaydeder; özellikler **`NET_CAPABILITY_INTERNET`** ve **`NET_CAPABILITY_VALIDATED`** içerdiğinde **`SyncWorker.schedule`** çağrılır.
+2. **`LocationForegroundService`**, **`observeConnectivity()`** akışını dinler: **çevrimiçi**ye geçişte yeniden **`SyncWorker.schedule`** ve **`INTERNET_RESTORED`** kaydı; kopuşta **`INTERNET_LOST`** ve gerektiğinde bildirim.
+3. **Soğuk başlatma**: `onCreate` zaten **tek seferlik** senkron ve **`SYNC_PERIODIC_INTERVAL_HOURS`** ile **periyodik** yedek işi sıraya koyar; ikisi de **`NetworkType.CONNECTED`** kısıtına tabidir.
+
+**SyncWorker yerel muhasebesi**
+
+- **`SyncWorker`** yalnızca **`NetworkType.CONNECTED`** altında çalışır; **`getUnsyncedLocations()`** ve **`getUnsyncedEvents()`** çıktılarında **`is_synced = 1`** ve **`synced_at = şimdi`** yazar. Referans derlemesinde **HTTP ile uzak yükleme yoktur** — davranış özeti için bkz. [SyncWorker sorumlulukları](#syncworker-sorumlulukları).
+- **`FieldFlowApplication`** geri çağrıları, ön plan servis gözlemcileri ve periyodik yedek iş, cihaz üzerinde **bağlantı sonrası otomatik işlem** zamanlar. Uzak mutabakat katmanı gerektiğinde aynı **`senkronize edilmemiş` satır kuyruğu** ve tetikleyiciler korunarak işçinin **içine** veya **ardına** eklenebilir.
+
+### Zamansal bütünlük (zaman damgaları)
+
+**Ölçüm zamanı ile senkron muhasebesi**
+
+- **`location_records`** ve **`event_records`** üzerindeki **`timestamp`**, **olayın veya ölçümün gerçekleştiği anı** temsil eder (konumda çoğunlukla **`Location.getTime()`**, geçersizse **`System.currentTimeMillis()`**). **Insert anında bir kez** yazılır; **`markLocationsSynced`** / **`markEventsSynced`** çalıştığında **yeniden yazılmaz**.
+- **`synced_at`** **ayrı bir sütundur**: satırın yerelde “senkron işaretlendiği” anı tutar — denetim ve saklama kuralları için kullanılabilir, özgün gözlem zamanını ezmez.
+
+**Çevrimdışı süre**
+
+- Saat sapması dışında, kesinti boyunca toplanan verinin **sırası ve kronolojisi** SQLite’ta korunur; yeniden bağlanmak geçmiş **`timestamp`** değerlerini sıfırlamaz veya birleştirmez.
+
+### Diğer çevrimdışı kullanılabilir özellikler
+
+- **Harita güzergâh oynatması**: Yerel **`ObserveRecentLocationsUseCase`** verisiyle çalışır ve ağ gerektirmez. Davranışın tam metni **Özellikler** bölümünde **Güzergâh oynatma** başlığı altında anlatılır.
+- **Cihaz üzerinde OCR**: Modeller hazırsa **ML Kit** backend turu gerektirmez.
+- **Etkinleştirme bayrağı**: Yerelde (**DataStore** / şifreleme yolu) saklanır — zaten etkinleştirilmiş oturumlarda açılış internet istemez.
+
+### Harita karosu notu (**OSMDroid**)
+
+Altlık **karolar** çoğunlukla **HTTPS** ile indirilir. Tam çevrimdışı harita genelde daha önce çevrimiçi oturumlarda **`cacheDir`** altına inmiş karoları gerektirir; sıfır önbellekli cihazda baz harita boş kalırken GPS iz düşümü görülebilir.
+
+### Ana sayfa durum panosu (`HomeScreen`)
+
+**`HomeScreen`** açıkken **`HomeViewModel`** içindeki **`combine`**, **`HomeUiState`** nesnesini güncel tutar; ana metnin altında sırayla şu beş özet görünür:
+
+1. **İnternet** — **`StatusRepositoryImpl.observeConnectivity`**, **`NET_CAPABILITY_INTERNET`** ile süzülmüş **`NetworkRequest`** kullanarak **`ConnectivityManager.registerNetworkCallback`** kaydeder; ağlar internet yeteneğini kazanıp kaybedince boolean akar (**`distinctUntilChanged`** **`Flow`**). Kart **çevrimiçi / çevrimdışı** metnini gösterir ve **`launchSettingsSafely(ACTION_WIRELESS_SETTINGS)`** ile kablosuz ayarlara gider.
+2. **Konum servisi (sistem anahtarı)** — **`observeLocationEnabled`**, **`LocationManager.MODE_CHANGED_ACTION`** için yayın alıcısı kaydeder ve **`LocationManager.isLocationEnabled`** değerini yeniden okuyarak OS düzeyinde konumun açık/kapalı geçişini yansıtır (**`StatusRepositoryImpl`**, Android **P** API notu).
+3. **`ACCESS_BACKGROUND_LOCATION` (API 29+)** — Yalnızca **`Build.VERSION.SDK_INT ≥ Q`** iken kart çizilir; durum **`ContextCompat.checkSelfPermission`** ile (**`RuntimePermissions.hasBackgroundLocationPermission`**). Android sürekli izin değişimi yayını sunmadığı için **`HomeScreen`**, **`Lifecycle.Event.ON_RESUME`** ve izin **`ActivityResult`** dönüşünde **`refreshRuntimePermissions()`** çağırır.
+4. **`POST_NOTIFICATIONS` (API 33+)** — Aynı **`checkSelfPermission`** anlık görüntüsü; **Tiramisu** altı sürümlerde bildirim varsayılan olarak verilmiş kabul edilir (**`HomeViewModel.checkNotificationPermission`**).
+5. **Pil yüzdesi** — **`observeBatteryLevel`**, **`ACTION_BATTERY_CHANGED`** ile **`BatteryManager.EXTRA_LEVEL`** / **`EXTRA_SCALE`** okur; ilk değer **`HomeUiState`** varsayılanında **-1** iken **`BatteryStatusCard`** “ölçülüyor” kopyasını gösterir, ardından yüzde (**20%** altı uyarı stili) güncellenir.
+
+**Burada ayrı kart olarak yok**: hassas / kaba ön planda konum izinleri (**`ACCESS_FINE_LOCATION`**, **`ACCESS_COARSE_LOCATION`**); bunlar **`LaunchedEffect`** ve **`rememberLauncherForActivityResult`** zinciriyle tetiklenir (bildirim ve arka plan izinleriyle sıralı). **`MapScreen`** ayrı olarak **`ACCESS_FINE_LOCATION`** eksikse **`PermissionRequired`** yüzeyini gösterir.
+
+**`LocationForegroundService`**, bildirim ve olay yan etkileri için aynı **`StatusRepository`** akışlarını bu belgede **Çevrimdışı çalışma** bölümünde özetlenen biçimde dinlemeye devam eder.
+
+---
+
+## İzinler ve arka plan davranışı
+
+`AndroidManifest.xml` içinde bildirilen başlıca izinler:
+
+- **Ağ**: `INTERNET`, `ACCESS_NETWORK_STATE`
+- **Kamera**: `CAMERA` (isteğe bağlı donanım: `camera` `required=false`)
+- **Biyometrik**: `USE_BIOMETRIC`
+- **Konum**: `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `ACCESS_BACKGROUND_LOCATION`
+- **Bildirimler**: `POST_NOTIFICATIONS`
+- **Ön plan servisi**: `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`
+- **Pil optimizasyonu**: `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`
+
+WorkManager’ın varsayılan başlatıcısı manifest birleştirmesi ile kaldırılmıştır; yapılandırma uygulama seviyesinde **HiltWorkerFactory** ile sağlanır (özel başlatma).
+
+---
+
+## Bildirimler ve uyarılar
+
+### Yerel bildirimler
+
+Uyarılar **yerel bildirimdir**: **`NotificationHelper`** (`app` modülü) içinde **`NotificationManager`** / **`NotificationCompat`** ile **cihaz üzerinde** üretilirler; tetikleyiciler çoğunlukla izleme, geofence kuralları, bağlantı durumu veya pil eşikleridir. Bildirim içeriğini **uzaktan bir mesajlaşma sunucusu** tetiklemez.
+
+### Yerel bildirim mimarisi
+
+- **Kanallar**: `CHANNEL_TRACKING` (düşük önem, izleme sırasında sessiz **devamlı** ön plan bildirimi), `CHANNEL_GEOFENCE` (yüksek önemli uyarılar), `CHANNEL_SYSTEM` (bağlantı / konum servisi / pil).
+- **Tetikleyiciler**: Geofence çıkışı, internet kaybı/geri gelişi yan etkileri, konum sağlayıcısı değişimleri ve pil eşikleri **`LocationForegroundService`** (ve ilgili akışlar) içinden `NotificationHelper` çağrılarını tetikler.
+- **Uygulama içi geçmiş**: Birçok uyarı ayrıca **`SaveNotificationUseCase`** → Room ile **`NotificationRecord`** olarak saklanır; **`NotificationListScreen`** / **`NotificationDetailScreen`** bu kayıtları listeler.
+
+### Gölge ile uygulama içi açıklama
+
+İşletim sistemi **durum çubuğu / bildirim gölgesi** için **`strings.xml`** altında **genel** metinler seçilir (`notif_*_title`, `notif_*_text`). Geofence bölge **adı**, pil **sayısı** gibi bağlam **`PendingIntent`** eklerinde taşınır (`EXTRA_NOTIF_TYPE`, `EXTRA_NOTIF_TIMESTAMP`, `EXTRA_NOTIF_EXTRA_ARG`); **`MainActivity`** **`NotificationDetailScreen`** ile **`notif_*_detail`** şablonlarından tam açıklamayı gösterir.
+
+| Uyarı | Gölgede `setContentTitle` / `setContentText` | Bağlamsal veri |
+|-------|-----------------------------------------------|----------------|
+| Geofence çıkışı | Genel “Security Alert” + **bölge adı içermeyen** kısa metin | Bölge **adı** yalnızca `extraArg` ile (yönlendirme + uygulama içi liste/detay) taşınır |
+| İnternet kaybı | Genel bağlantı metni | Koordinat veya kimlik yok |
+| Konum servisi kapalı | Genel “izleme durdu” metni | Koordinat yok |
+| Düşük pil | Kısa satırda **pil yüzdesi** (`%1$d%%`) — operasyonel, GPS/kişisel veri değil | Tam açıklama detay ekranında |
+| Ön plan izleme | Genel aktif/çalışıyor mesajı | Koordinat yok |
+
+**İşleyiş ilkeleri**
+
+- **`NotificationHelper`** gölgede **`BigTextStyle`** veya uzun gövde kullanmaz; hassas uzun metnin tekrarını önler.
+- **Uygulama içi liste satırları** (`NotificationListScreen`, `notificationSubtitle`) `extraArg` ile **tek satırlık özet** gösterebilir (ör. bölge etiketi); bu yüzey **OS gölgesinden farklı olarak uygulama içindedir**.
+- **Kalan risk**: Kilit ekranında bildirim içeriğinin görünmesi kullanıcı ve işletim sistemi ayarına bağlıdır; gölge metnini **yarı kamusal** kabul edip tanımlayıcıları azaltmaya devam edin (politika gerekiyorsa pil yüzdesini yalnızca uygulama içine taşımayı değerlendirin).
+
+---
+
+## Olay günlüğü (denetim izi)
+
+### Otomatik kalıcılık hattı
+
+**`LocationForegroundService`**, **`StatusRepository`** üzerinden bağlantıyı, Android P+ konum sağlayıcı kullanılabilirliğini ve geofence histerezisini izler; koşulları sağlayan geçişler **`SaveEventUseCase`** ile şifreli **`event_records`** tablosuna **`EventRecord`** satırı ekler.
+
+| Tetikleyici | `EventType` değerleri | Davranış |
+|-------------|----------------------|----------|
+| İnternet bağlantısı geçişleri | **`INTERNET_LOST`**, **`INTERNET_RESTORED`** | İlk örnek bastırılır; sonraki geçişler kalıcı yazılır. |
+| Konum sağlayıcısı aç/kapa (Android P+) | **`LOCATION_SERVICE_DISABLED`**, **`LOCATION_SERVICE_ENABLED`** | Bağlantı akışıyla aynı bastırma politikası. |
+| Geofence mantıksal giriş/çıkış | **`GEOFENCE_ENTER`**, **`GEOFENCE_EXIT`** | Ayrı geofence depolamasıyla birlikte; **`detail`** çoğunlukla okunabilir **bölge adı**dır. |
+
+Düşük pil uyarıları **`NotificationHelper`** ile sunulur; **`EventRecord.EventType`** numaralandırmasına **pil** türü eklenmez — denetim kayıtları şu an bağlantı, sağlayıcı ve geofence olaylarını kapsar.
+
+### `EventLogScreen` sunum modeli
+
+**`EventLogViewModel`**, **`ObserveAllEventsUseCase`** zaman sıralı **`Flow`** çıktısını toplar. **`EventRecordCard`** bileşeni:
+
+- **`EventRecord.EventType`** için yerelleştirilmiş başlık üretir.
+- Oluşum anını **`toFormattedDate(timestamp)`** ile gösterir ( **`syncedAt`** muhasebesinden bağımsız ).
+- Dolu **`detail`** için tek satırlık alt başlık üretir (geofence senaryolarında sık).
+- İkon ve kart tonu ile kategori / önem iletir — kalıcı bir iş akışı **durum** enum’u değildir.
+
+Varlık düzeyinde **`isSynced` / `syncedAt`** **`SyncWorker`** mutabakatı için saklanır; mevcut Compose yüzeyi **bekleyen / senkronize** rozetleri çizmiyor — alanlar entegrasyon ve olası genişlemeye açıktır.
+
+### İsteğe bağlı operatör notları
+
+**`EventRecord.note`** varsayılan olarak boştur. Satır seçimi **`NoteDialog`** açar; **`UpdateEventNoteUseCase`** metni **`EventRepository.updateNote`** ile kalıcı yapar. Önizleme yalnızca kullanıcı girişinden sonra gösterilir; otomatik kayıtlar için **zorunlu not** politikası yoktur.
+
+---
+
+## Veri yaşam döngüsü, şifreleme ve cihaz güvenliği
+
+Bu bölüm, yalnızca hangi kütüphanelerin eklendiğini değil, **kodun bugün nasıl davrandığını** anlatır.
+
+### Konum geçmişi: 24 saatlik pencere (ve 7 günlük güvenlik ağı)
+
+Konum saklama süreleri `domain/.../DataRetentionConstants.kt` içinde tanımlıdır:
+
+| Sabit | Süre | Amaç |
+|--------|------|------|
+| `DAY_MS` | 24 saat | Arayüz ve budama kuralları için temel “gün” |
+| `SYNCED_LOCATION_RETENTION_MS` | 24 saat | Her yeni konum kaydından sonra **zaten senkronize edilmiş** ve 24 saatten eski noktalar silinir |
+| `UNSYNCED_LOCATION_RETENTION_MS` | 7 gün | Hâlâ **senkronize edilmemiş** satırlar yalnızca yedi günden eskiyse silinir (çevrimdışıyken WorkManager’ın işaretlemesi için ek süre) |
+
+`SaveLocationUseCase` her zaman yeni noktayı ekler, ardından “şimdi”ye göre hesaplanan eşiklerle her iki silme yardımcısını çağırır. Böylece diskteki **senkronize** iz kabaca **son 24 saat** ile sınırlı kalır; **senkron bekleyen** veri daha uzun yaşayabilir.
+
+Harita / “son konumlar” yolu `ObserveRecentLocationsUseCase` kullanır; bu da `getLocationsAfter(now - DAY_MS)` ile abone olur — yani arayüzün “güncel” saydığı veri, tabloda duran kayıtlar içinde **açıkça son 24 saat**tir.
+
+### SyncWorker sorumlulukları
+
+**`SyncWorker`**, **`NetworkType.CONNECTED`** koşulları sağlandığında (periyodik yedek dahil) çalışır; **senkronize edilmemiş** konum ve olay kayıtlarını **`is_synced`** ve güncel **`synced_at`** ile işaretler. Referans uygulamasında **HTTP yükleme** bulunmaz; uzak API eklemek aynı kuyruk semantiğini koruyarak işçi içinde veya sonrasında yapılabilir.
+
+### Beklemede şifreleme (Room / SQLCipher)
+
+1. **`DatabasePassphraseStore`** (`data` modülü) SQLCipher parolasını **EncryptedSharedPreferences** (`androidx.security:security-crypto`) içinde tutar: Android Keystore’da **AES-256-GCM** ana anahtar, tercih anahtarları/değerleri şifrelenir (SIV + GCM).
+2. İlk açılışta **48 karakterlik** rastgele parola (`SecureRandom`) üretilir ve bu şifreli tercihlere yazılır.
+3. **`DatabaseModule`** SQLCipher yerel kütüphanelerini yükler, Room’u `SupportFactory(passphraseBytes)` ile oluşturur; `fieldflow.db` böylece **SQLCipher ile şifreli** bir SQLite dosyasıdır.
+4. **`SqlCipherDatabaseMigrator`** eski **düz metin** `fieldflow.db` dosyasını algılar, `sqlcipher_export` ile yeni şifreli dosyaya aktarır ve yedeği kaldırır. Migrasyon başarısız olursa dosyalar silinerek boş şifreli DB oluşturulmasına izin verilebilir; ayrıca Room **`fallbackToDestructiveMigration(true)`** ile yapılandırılmıştır — şema sorunları yerel veriyi silebilir. Şablon uygulama için kabul edilebilir, üretimde bilinçli karar gerekir.
+
+Tüm **Room** tabloları (konumlar, olaylar, geofence bölgeleri/olayları, bildirimler vb.) bu tek şifreli veritabanı dosyasında yer alır.
+
+### Etkinleştirme sırları (`AppActivationStore`)
+
+Etkinleştirme akışı şunları saklar:
+
+- `is_activated` değerini **Preferences DataStore** içinde (`activation_prefs`).
+- Beklenen aktivasyon kodunu: önce **gömülü AES-GCM blob**’undan (derleme zamanı etiketinden **SHA-256 türetilmiş** AES anahtarı ile); ardından **donanım destekli / Keystore** AES-GCM anahtarı ile tekrar **mühürlenmiş** halde Base64 olarak DataStore’da.
+
+Yani yol **iki katmanlıdır**: gömülü/obfuscation + Keystore destekli şifreleme. Bu, sunucu taraflı lisans veya kurumsal doğrulamanın yerine geçmez.
+
+### Ayarlar ve sırlar
+
+`SettingsRepositoryImpl` dil, tema ve **konum örnekleme aralığı** (varsayılan **60 saniye**) için ayrı bir **DataStore** kullanır. Bu tercihler EncryptedSharedPreferences/SQLCipher ile aynı koruma seviyesinde değildir; Android uygulama korumalı alanına (sandbox) güvenir.
+
+### Root ve “ele geçirilmiş / rootlanmış cihaz” davranışı
+
+**`RootDetector`** (`utils`) şunları birleştirir:
+
+- `Build.TAGS` içinde `test-keys` (resmi olmayan derlemelerde sık görülür).
+- Sabit bir yol listesinde dosya varlığı (ör. `su`, **Magisk** yolları, `Superuser.apk`).
+
+Bu yöntem **heuristik**tir; yanlış pozitif/negatif her zaman mümkündür. **`MainNavigationHost`** engelleyici olmayan bir **`AlertDialog`** gösterir; kullanıcı uyarıyı onaylar, uygulama **zorunlu olarak kapatılmaz**. Daha yüksek güvence için Play Integrity, kurumsal politika veya uzaktan doğrulama eklenmelidir.
+
+### Sürekli konum toplama ve geofence
+
+**`LocationForegroundService`** (`location` türü):
+
+- Kalıcı bildirimle (**`NotificationHelper`**) **ön plan** servisi olarak başlar.
+- **Google Play services** `FusedLocationProviderClient` ile **yüksek doğruluk** kullanır; güncelleme aralığı kullanıcı ayarından gelir (`locationIntervalSeconds`, milisaniyeye çevrilir).
+- Her düzeltmede **`SaveLocationUseCase`** (saklama kurallarını tetikler) ve depolanmış bölgelere karşı **`checkGeofences`** çalışır: histerezis (ayrı giriş/çıkış eşikleri ve **iki örnek ile doğrulama**) GPS titremesini azaltır.
+- **GİRİŞ/ÇIKIŞ** geofence olayları Room’a yazılır ve genel **olay günlüğü**ne yansır; çıkışta (ve diğer sistem kaynaklı uyarılarda) bildirim gönderilebilir.
+
+Servis çalışırken eşzamanlı olarak **bağlantı**, **konum servisinin açık/kapalı** durumu (P+) ve **pil seviyesi** izlenir; geçişler **`SaveEventUseCase`** ve bildirim yardımcılarına gider (ör. internet koptu, konum kapalı, pil düşük).
+
+#### Örnekleme sıklığı ve yerel kalıcılık
+
+**Izleme yaşam döngüsü.** Kullanıcı **izlemeyi** açınca **`TrackingRepositoryImpl`**, **`LocationForegroundService`**’i başlatır. Sürekli düzeltme akışının taşıdığı servis **`location`** türünde bir **ön plan** servisi ve kalıcı bildirimi taşır; koordinatlar için ayrı bir periyodik WorkManager anketi kullanılmaz.
+
+**Parametrik aralık.** Birleşik güncelleme süresinin hedefi **`UserPreferences.locationIntervalSeconds`** alanındadır; değer **`settingsRepository.preferences`** üzerinden okunur ve **`SettingsRepositoryImpl`** içinde **Preferences DataStore**’da **`location_interval_seconds`** anahtarıyla saklanır. Tercih yoksa varsayılan **60 saniye** kullanılır. **`SettingsScreen`** yalnızca **etkinleştirmeden sonra** seçilebilen **30 / 60 / 120 / 300** saniye çipleri sunar (**`LOCATION_INTERVALS`**); değişimler **`SettingsViewModel`** ile repository’ye yazılır. Servis **`startObservingInterval()`** ile saniye değerini milisaniyeye çevirip (**`distinctUntilChanged`**) **`restartLocationUpdates`** ile önceki aboneliği kaldırıp yeniden **`requestLocationUpdates`** talep eder.
+
+**İstek biçimi.** **`startLocationUpdates`**, **`LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, intervalMs)`**, **`setMinUpdateIntervalMillis(intervalMs / 2)`** oluşturur ve **`LocationCallback`**’i **`FusedLocationProviderClient`**’e bağlar. **`PRIORITY_HIGH_ACCURACY`**, donanımda yalnızca **`GPS_PROVIDER`**’a kilitlenen sabit frekanslı bir örnekleme anlamına gelmez; Play services tarafından sunulan fused (GNSS ve diğer sinyaller) yolunun yüksek doğruluğunu ister.
+
+**SQLite yazımı.** Her **`onLocationResult`** çıktısı **`Location`**’dan **`LocationRecord`** (enlem/boylam, geçerliyse **`location.time`**, aksi **`System.currentTimeMillis()`**) üretilir; **`SaveLocationUseCase`** üzerinden **`LocationRepository`** → **`LocationDao.insert`** ile **`location_records`** içine yazılır; ardından aynı kullanıcı durumundan saklama budamaları uygulanır. Tablo daha geniş şifreli Room bağlamına [Veri yaşam döngüsü, şifreleme ve cihaz güvenliği](#veri-yaşam-döngüsü-şifreleme-ve-cihaz-güvenliği) ile uyumludur.
+
+Fiilen iki düzeltme arası süre OEM enerji politikalarına, chipset davranışına, fused sağlayıcı gecikmesine ve uygun ise **`ACCESS_BACKGROUND_LOCATION`** bağlamına göre sapar; kullanıcı konumu kapattığında da durur. **`intervalMs`**, işletim sistemi için nominal hedef, duvar saati SLA’sı değildir.
+
+#### Güvenli bölgeler (dairesel geofence)
+
+Güvenli bölgeler **dairesel** modellenir. **`GeofenceZone`**; **`centerLat`**, **`centerLng`** ve **`radiusMeters`** saklar. **`MapScreen`** her bölgeyi daireyi yaklaşıklayan çokgenle çizer (**`generateCirclePoints`**). **`LocationForegroundService`** her düzeltmede merkeze **`Location.distanceBetween`** uygular; **`GeofencingClient`** kullanılmaz.
+
+**`geofence_zones`** tablosu ilk kurulumda **boştur**; öntanımlı bölge yoktur. Bölgeler yalnızca harita akışıyla oluşturulur (ad, enlem, boylam, yarıçap).
+
+**`LocationForegroundService`** konum güncellemeleri gelirken her birleştirilmiş düzeltmeden sonra **`checkGeofences`** çağırır. Servis çalışmıyorsa veya bölgeler yoksa sınıflandırma yapılmaz. Geçişlerin zamanlaması **`locationIntervalSeconds`**, fused düzeltme sıklığı, **`ACCESS_BACKGROUND_LOCATION`** iznine bağlı senaryolar ve OEM ön plan/arka plan kısıtlarına bağlıdır.
+
+Çıkış için sınır, nominal **`radiusMeters`** artı **`GEOFENCE_EXIT_HYSTERESIS_METERS`** (**25** m) olarak ele alınır; geçiş, **`GEOFENCE_CONFIRMATION_SAMPLES`** (**2**) üst üste uygun örnek sonrasında kesinleşir. Tekrar girişte kullanılan eşik **`enterThresholdMeters`** ve **`GEOFENCE_ENTER_HYSTERESIS_METERS`** ile **`LocationForegroundService`** companion’ında tanımlıdır.
+
+**`prevInside → dışarı`** durumunda sırayla: **`SaveGeofenceEventUseCase`**, **`EXIT`** **`GeofenceEvent`** kaydını **`geofence_events`** tablosuna yazar; **`SaveEventUseCase`**, **`GEOFENCE_EXIT`** **`EventRecord`** satırını bölge adıyla **`detail`** alanında **`event_records`** içine ekler; **`NotificationHelper.sendGeofenceExitAlert`** **`CHANNEL_GEOFENCE`** üzerinde **yerel** bildirim gösterir ve **`NotificationRecord`** oluşturur. Bildirim gölgesindeki satırlar genel kalır (**[Bildirimler ve uyarılar](#bildirimler-ve-uyarlar)**; ek veriler bağlam için kullanılır).
+
+**ENTER** için **`ENTER`** **`GeofenceEvent`** ve **`GEOFENCE_ENTER`** **`EventRecord`** aynı yapıyla yazılır; **`sendGeofenceExitAlert`** çağrısı yapılmaz.
+
+### Kimlik tarama (OCR)
+
+**Kimlik tarama** ekranı **CameraX** ve **ML Kit Text Recognition** kullanır. `IdScanViewModel` OCR metnini `IdentityInfo` (ad/soyad) olarak ayrıştırır; veri **etkinleştirme** navigasyon akışında kullanılır. OCR çıktısı başka yerde kalıcı hale getirilmedikçe ayrı bir kasada şifrelenmez — uyumluluk (KVKK/GDPR) için **kod yollarını** takip edin.
+
+### Olay günlüğü, geofence geçmişi, bildirimler
+
+- **Olay kayıtları** (`event_records`) ve **bildirimler**, senkronize konumlarla aynı şekilde **otomatik 24 saatlik silme**ye sahip değildir; budama veya kullanıcı silme API’leri eklenene kadar birikir.
+- Arayüzde **geofence olayları** varsayılan olarak `observeRecentEvents(limit = 50)` ile izlenir — son **adet** limiti, 24 saatlik kesme değil.
+
+### Tehdit modeli (kısa)
+
+| Kontrol | Ne işe yarar | **Garanti etmediği** şeyler |
+|---------|----------------|-----------------------------|
+| SQLCipher + şifreli parola deposu | Cihaz hırsızlığı / uygulama depolamasının çevrimdışı kopyalanması | Root’lu saldırganın bellek okuması, root yetkili kötü amaçlı yazılım, yanlış yapılandırılmış yedekler |
+| Keystore + GCM (etkinleştirme) | Saklanan etkinleştirme materyalini kurcalamaya karşı mühür | APK tersine mühendisliğiyle gömülü sırlar, yan kanal saldırıları |
+| RootDetector + diyalog | Kullanıcı farkındalığı, hafif politika sinyali | Gizli root, bilinmeyen yollar, `su` ikili dosyası olmayan özel ROM’lar |
+| Ön plan konumu + açık izinler | Kullanıcıya görünür izleme, işletim sistemi onayı | GPS’i devre dışı bırakan kullanıcı, konum sahteciliği uygulamaları |
+
+---
+
+## Gereksinimler
+
+- **Android Studio** (AGP 8.10.x ile uyumlu güncel sürüm önerilir)
+- **JDK**: Proje kaynakları **Java 11** dil seviyesine hedeflenmiştir. Yerel geliştirmede Android Studio’nun gömülü JDK’sı genelde yeterlidir; **CI ortamında JDK 17** (Eclipse Temurin) kullanılır.
+
+---
+
+## Derleme ve çalıştırma
+
+Depoyu klonladıktan sonra proje kökünde:
+
+```bash
+./gradlew assembleDebug
+```
+
+Release APK/AAB için kendi `signingConfig` yapılandırmanızı eklemeniz gerekir; şablonda uygulama kimliği `com.example.fieldflow` olarak geçer.
+
+---
+
+## Kalite: test ve lint
+
+```bash
+./gradlew testDebugUnitTest lint
+```
+
+### Birim test envanteri
+
+Testler Gradle ile JVM üzerinde çalışır (`testDebugUnitTest`). Android kitaplık modüllerinde gerektiğinde **Robolectric** kullanılır; ViewModel testleri için **kotlinx-coroutines-test** ve **`MainDispatcherRule`** (`presentation/src/test/.../MainDispatcherRule.kt`) `Dispatchers.Main` atamasını yönetir. Ortak sahte/stub nesneler `presentation/src/test/.../fakes/` altında (ör. `Stubs.kt`).
+
+| Modül | Kapsanan alanlar | Örnek test sınıfları |
+|--------|------------------|----------------------|
+| **`:domain`** | Modeller, use case’ler (konum saklama, geofence, bildirimler, olaylar, izleme) | `LocationUseCasesTest`, `GeofenceUseCasesTest`, `NotificationUseCasesTest`, `EventUseCasesTest`, `TrackingUseCasesTest`, `DomainModelRecordsTest` |
+| **`:data`** | Repository uygulamaları → DAO/Room eşlemesi | `LocationRepositoryImplTest`, `EventRepositoryImplTest`, `NotificationRepositoryImplTest`, `GeofenceRepositoryImplTest` |
+| **`:presentation`** | ViewModel’ler, OCR ayrıştırma | `IdScanViewModelTest`, `IdentityTextParserTest`, `HomeViewModelTest`, `MapViewModelTest`, `SettingsViewModelTest`, `NotificationListViewModelTest`, `EventLogViewModelTest` |
+| **`:utils`** | Root sezgisel tespiti, küçük uzantılar | `RootDetectorTest`, `StringExtensionsTest`, `ConstantExtensionsTest` |
+| **`:app`** | Rota serileştirme, uygulama sabitleri | `FieldFlowRouteSerializationTest`, `AppConstantsTest` |
+
+Şu anda `**/src/test` altında **22** adet `*Test.kt` dosyası vardır. `androidTest` altındaki enstrümantasyon/UI testleri bu repoda zorunlu değildir; CI yalnızca birim testleri ve lint çalıştırır.
+
+---
+
+## Sürekli entegrasyon (CI)
+
+GitHub Actions iş akışı: `.github/workflows/fieldflow-build.yml` (**FieldFlow Build**).
+
+Tetikleyiciler: `pull_request`, `push` (`main` / `master`), `workflow_dispatch`.
+
+Adımlar:
+
+1. Checkout  
+2. Gradle Wrapper doğrulama  
+3. JDK 17 (Temurin)  
+4. Gradle kurulumu  
+5. `./gradlew assembleDebug testDebugUnitTest lint --no-daemon --stacktrace --warning-mode=all`  
+6. Başarısızlıkta rapor artifact yükleme (`build/reports/`, `build/test-results/`)
+
+Aynı PR için eşzamanlı işler iptal edilir (`concurrency`).
+
+---
+
+## Güvenlik ve gizlilik notları
+
+Saklama, SQLCipher, etkinleştirme kriptosu, root tespiti ve konum izlemenin kodda nasıl birleştiği için bkz. **[Veri yaşam döngüsü, şifreleme ve cihaz güvenliği](#veri-yaşam-döngüsü-şifreleme-ve-cihaz-güvenliği)**.
+
+- **İmza anahtarları** veya API sırlarını repoya koymayın; CI gizli değişkenleri veya yerel `local.properties` / güvenli mağaza kullanın.
+- **Konum**, **kamera** ve **biyometrik** veriler hassastır; Play Console ve gizlilik politikası açıklamalarını güncelleyin.
+- Yerel şifreleme, çevrimdışı depolama saldırılarına karşı eşiği yükseltir; **tam kurumsal bir tehdit modeli** değildir.
+
+---
+
+## Lisans
+
+Bu depoda açık kaynak lisans dosyası yoksa, kullanım koşullarını proje sahibiyle netleştirin.
+
+---
+
+*Bu README, depodaki `build.gradle.kts`, `settings.gradle.kts`, `gradle/libs.versions.toml`, `AndroidManifest.xml` ve navigasyon kaynaklarına göre hazırlanmıştır. Bağımlılık sürümleri değiştiğinde tabloları güncellemek için önce `libs.versions.toml` dosyasına bakın.*

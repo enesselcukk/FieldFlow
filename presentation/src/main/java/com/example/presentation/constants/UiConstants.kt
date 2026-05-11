@@ -14,3 +14,11 @@ internal enum class IdScanPhase {
 internal const val IdCardAspectWidthOverHeight = 1.586f
 internal const val IdScanTag = "IdScan"
 
+internal const val ViewfinderCornerDp = 20
+internal const val ViewfinderOuterMarginDp = 28
+internal const val ViewfinderStrokeWidthDp = 3
+
+internal const val MaxFrameWidthOfAvailable = 0.9f
+internal const val MaxFrameHeightOfAvailable = 0.65f
+internal const val OutsideFrameAlpha = 0.55f
+

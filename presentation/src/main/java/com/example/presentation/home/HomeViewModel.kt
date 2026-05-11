@@ -7,6 +7,7 @@ import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.domain.model.RuntimePermissions
 import com.example.domain.repository.StatusRepository
 import com.example.domain.repository.TrackingRepository
 import com.example.domain.usecase.tracking.StartTrackingUseCase
@@ -25,7 +26,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val statusRepository: StatusRepository,
     private val trackingRepository: TrackingRepository,
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _runtimePermissions = MutableStateFlow(buildRuntimePermissions())
@@ -89,9 +90,3 @@ class HomeViewModel @Inject constructor(
             ) == PackageManager.PERMISSION_GRANTED
         } else true
 }
-
-private data class RuntimePermissions(
-    val hasNotificationPermission: Boolean,
-    val hasFineLocationPermission: Boolean,
-    val hasBackgroundLocationPermission: Boolean,
-)

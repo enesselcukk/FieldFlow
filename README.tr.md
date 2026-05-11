@@ -1,6 +1,6 @@
 # FieldFlow
 
-**Aktivasyon kodu (bu depodaki derleme):** **`123456`** — ilk kurulumda açılan aktivasyon ekranında **tam olarak** bu altı rakamı girin.
+**Aktivasyon kodu :** **`123456`** — ilk kurulumda açılan aktivasyon ekranında **tam olarak** bu altı rakamı girin.
 
 Saha ve operasyon tarzı akışlar için **Kotlin** ve **Jetpack Compose** ile geliştirilmiş çok modüllü bir Android uygulamasıdır. Kimlik tarama (OCR), biyometrik doğrulama, etkinleştirme, harita ve konum, bildirimler, arka planda senkronizasyon ve olay günlüğünü bir araya getirir.
 
@@ -25,7 +25,6 @@ Saha ve operasyon tarzı akışlar için **Kotlin** ve **Jetpack Compose** ile g
 - [Kalite: test ve lint](#kalite-test-ve-lint)
 - [Sürekli entegrasyon (CI)](#sürekli-entegrasyon-ci)
 - [Güvenlik ve gizlilik notları](#güvenlik-ve-gizlilik-notları)
-- [Lisans](#lisans)
 
 ---
 

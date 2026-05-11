@@ -1,6 +1,6 @@
 # FieldFlow
 
-**Activation code (this repository build):** **`123456`** — enter exactly these six digits on the onboarding activation screen.
+**Activation code :** **`123456`** — enter exactly these six digits on the onboarding activation screen.
 
 A multi-module Android app built with **Kotlin** and **Jetpack Compose** for field and operations-style workflows. It brings together ID scanning (OCR), biometric verification, activation, maps and location, notifications, background sync, and an event log.
 
@@ -25,7 +25,6 @@ A multi-module Android app built with **Kotlin** and **Jetpack Compose** for fie
 - [Quality: tests and lint](#quality-tests-and-lint)
 - [Continuous integration (CI)](#continuous-integration-ci)
 - [Security and privacy notes](#security-and-privacy-notes)
-- [License](#license)
 
 ---
 

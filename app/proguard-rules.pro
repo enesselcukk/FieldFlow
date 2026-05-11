@@ -1,21 +1,52 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# FieldFlow app — R8 / ProGuard (release)
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Readable crash traces (Play Console / Firebase)
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# --- Kotlin ---
+-dontwarn kotlin.reflect.jvm.internal.**
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# --- kotlinx.serialization (runtime + app NavKey routes) ---
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
+
+-keepclassmembers class kotlinx.serialization.json.** {
+    *** Companion;
+}
+-keepclasseswithmembers class kotlinx.serialization.json.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+-keepclassmembers class com.example.fieldflow.navigation.** {
+    *** Companion;
+}
+-keep,includedescriptorclasses class com.example.fieldflow.navigation.**$$serializer {
+    *;
+}
+
+# --- Hilt / Dagger generated entry points ---
+-keep class dagger.hilt.internal.aggregatedroot.** { *; }
+-keep class * extends dagger.hilt.internal.GeneratedComponent
+-keep class **_HiltComponents { *; }
+-keep class * extends dagger.hilt.android.internal.managers.ViewComponentManager$FragmentContextWrapper
+
+# --- WorkManager (+ @HiltWorker) ---
+-keep class * extends androidx.work.Worker
+-keep class * extends androidx.work.ListenableWorker
+-keep class androidx.work.WorkerFactory
+
+# --- Play Services (location) ---
+-dontwarn com.google.android.gms.**
+-keep class com.google.android.gms.location.** { *; }
+
+# --- OSMDroid ---
+-keep class org.osmdroid.** { *; }
+-dontwarn org.osmdroid.**
+
+# ML Kit, CameraX, Room, SQLCipher: :presentation + :data consumer-rules.pro
+
+# --- Misc warnings from transitive libs ---
+-dontwarn javax.annotation.**
+-dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
+-dontwarn edu.umd.cs.findbugs.annotations.SuppressFBWarnings

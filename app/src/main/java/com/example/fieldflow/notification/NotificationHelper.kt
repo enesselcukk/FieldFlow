@@ -29,7 +29,6 @@ import com.example.fieldflow.constants.NOTIFICATION_ID_BATTERY_LOW
 import com.example.fieldflow.constants.NOTIFICATION_ID_GEOFENCE_BASE
 import com.example.fieldflow.constants.NOTIFICATION_ID_INTERNET_LOST
 import com.example.fieldflow.constants.NOTIFICATION_ID_LOCATION_DISABLED
-import com.example.fieldflow.constants.NOTIFICATION_ID_TRACKING
 import com.example.fieldflow.constants.RC_TRACKING
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope

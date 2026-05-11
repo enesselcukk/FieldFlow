@@ -56,33 +56,45 @@ Uygulama **katmanlı, Clean Architecture ilhamlı** bir yapıdadır:
 **Navigasyon** [AndroidX Navigation 3](https://developer.android.com/jetpack/androidx/releases/navigation) (`navigation3-runtime`, `navigation3-ui`) ve **Kotlin Serialization** ile serileştirilen rota anahtarları (`NavKey`) kullanılır.
 
 ```mermaid
+---
+title: FieldFlow Gradle modül grafiği
+---
 flowchart TB
-    subgraph APP["Gradle app"]
-        A["Application, WorkManager, Sync"]
-        B["MainActivity, navigation host"]
-    end
-    subgraph PRES["Gradle presentation"]
-        P["Compose UI, ViewModels"]
-    end
-    subgraph DOM["Gradle domain"]
-        D["Models, use cases"]
-    end
-    subgraph DATA["Gradle data"]
-        R["Room, SQLCipher"]
-        S["DataStore, Crypto"]
-    end
-    subgraph UTIL["Gradle utils"]
-        U["Shared helpers"]
+    subgraph appMod["`app` modülü — Android Uygulama"]
+        shell["Önyükleme: Application, WorkManager, senk · MainActivity, navigasyon kabuğu"]
     end
 
-    B --> P
-    P --> D
-    P --> U
-    R --> D
-    S --> D
-    B --> R
-    B --> S
-    B --> D
+    subgraph presMod["`presentation` modülü — Android Library"]
+        ui["Compose arayüzü · ViewModel’ler"]
+    end
+
+    subgraph dataMod["`data` modülü — Android Library"]
+        direction LR
+        roomLayer["Kalıcılık: Room · SQLCipher"]
+        prefLayer["Tercihler: DataStore · şifreleme"]
+    end
+
+    subgraph domMod["`domain` modülü — Android Library"]
+        domainCore["İş çekirdeği: modeller · use case’ler"]
+    end
+
+    subgraph utilMod["`utils` modülü — Android Library"]
+        helpers["Çapraz yardımcılar"]
+    end
+
+    shell --> ui
+    shell --> roomLayer
+    shell --> prefLayer
+    shell --> domainCore
+    ui --> domainCore
+    ui --> helpers
+    roomLayer --> domainCore
+    prefLayer --> domainCore
+
+    classDef layerCluster fill:#f8fafc,stroke:#475569,color:#0f172a
+    classDef highlightCore fill:#eff6ff,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    class appMod,presMod,dataMod,domMod,utilMod layerCluster
+    class domainCore highlightCore
 ```
 
 ---

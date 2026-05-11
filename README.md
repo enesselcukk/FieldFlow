@@ -1,5 +1,7 @@
 # FieldFlow
 
+**Activation code (this repository build):** **`123456`** — enter exactly these six digits on the onboarding activation screen. This is a **demo default** only; regenerate the embedded credential before any production rollout.
+
 A multi-module Android app built with **Kotlin** and **Jetpack Compose** for field and operations-style workflows. It brings together ID scanning (OCR), biometric verification, activation, maps and location, notifications, background sync, and an event log.
 
 **Türkçe:** [README.tr.md](README.tr.md)

@@ -9,7 +9,7 @@ A multi-module Android app built with **Kotlin** and **Jetpack Compose** for fie
 ---
 
 ## Screen recording
-https://github.com/user-attachments/assets/43745bbc-ba78-4a1d-9fb8-3451c79fd3e1
+https://github.com/enesselcukk/FieldFlow/issues/2#issue-4424647122
 ---
 
 ## Table of contents

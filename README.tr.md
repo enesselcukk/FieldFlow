@@ -10,6 +10,7 @@ Saha ve operasyon tarzı akışlar için **Kotlin** ve **Jetpack Compose** ile g
 
 ## Ekran kaydı
 
+
 ---
 
 ## İçindekiler
@@ -25,8 +26,7 @@ Saha ve operasyon tarzı akışlar için **Kotlin** ve **Jetpack Compose** ile g
 - [Bildirimler ve uyarılar](#bildirimler-ve-uyarlar)
 - [Olay günlüğü (denetim izi)](#olay-günlüğü-denetim-izi)
 - [Veri yaşam döngüsü, şifreleme ve cihaz güvenliği](#veri-yaşam-döngüsü-şifreleme-ve-cihaz-güvenliği)
-- [Gereksinimler](#gereksinimler)
-- [Derleme ve çalıştırma](#derleme-ve-çalıştırma)
+- [Kurulum ve ortam hazırlığı](#kurulum-ve-ortam-hazırlığı)
 - [Kalite: test ve lint](#kalite-test-ve-lint)
 - [Sürekli entegrasyon (CI)](#sürekli-entegrasyon-ci)
 - [Güvenlik ve gizlilik notları](#güvenlik-ve-gizlilik-notları)
@@ -531,22 +531,66 @@ Güvenli bölgeler **dairesel** modellenir. **`GeofenceZone`**; **`centerLat`**,
 
 ---
 
-## Gereksinimler
+## Kurulum ve ortam hazırlığı
 
-- **Android Studio** (AGP 8.10.x ile uyumlu güncel sürüm önerilir)
-- **JDK**: Proje kaynakları **Java 11** dil seviyesine hedeflenmiştir. Yerel geliştirmede Android Studio’nun gömülü JDK’sı genelde yeterlidir; **CI ortamında JDK 17** (Eclipse Temurin) kullanılır.
+### Ön koşullar
 
----
+| Gereksinim | Notlar |
+|------------|--------|
+| **Android Studio** | **AGP 8.10.x** ile uyumlu güncel stabil sürüm (`gradle/libs.versions.toml`). Gradle senkronunda plug-in uyumsuzluğu varsa Studio’yu yükseltin. |
+| **JDK** | Kaynaklar **Java 11** dil seviyesine hedeflenmiştir. Gradle JDK olarak Android Studio’nun gömülü çalışma zamanını kullanın (**Ayarlar → Derleme … → Gradle → Gradle JDK**); CI ortamında **Eclipse Temurin 17** doğrulanır. |
+| **Android SDK** | **`compileSdk` / `targetSdk`** için **API 36** platform paketleri kurulu olmalı. **`minSdk` 24** ve üzeri en az bir emülatör imajı önerilir. |
+| **Google Play services** | Fused konum için fiziksel cihazda veya emülatörde **Play Store / Play services** bulunan imajlar tercih edilmelidir. |
 
-## Derleme ve çalıştırma
+### Depoyu alma ve projeyi açma
 
-Depoyu klonladıktan sonra proje kökünde:
+1. Git ile klonlayın veya arşivi köke çıkarın.
+2. Android Studio’da **Dosya → Aç…** ile **`settings.gradle.kts`** dosyasının bulunduğu **depo kökünü** seçin (alt modül klasörü değil).
+3. Kurumsal politika uyarınca Gradle projesine güvenin.
+
+### Bağımlılık senkronizasyonu
+
+İçe aktarımdan sonra Gradle senkronu başlar. Gerekirse **Dosya → Gradle ile Proje Dosyalarını Senkronize Et**. İlk çözümleme, Version Catalog’taki Maven koordinatlarını (SQLCipher dahil) indirir — **`settings.gradle.kts`** ile uyumlu **HTTPS** erişimi veya kurumsal ayna kullanın.
+
+SDK yolu varsayılan değilse kökte **`local.properties`** oluşturun:
+
+```properties
+sdk.dir=/mutlak/yol/Android/sdk
+```
+
+Studio genelde bu dosyayı otomatik yazar.
+
+### Cihaz veya emülatörde çalıştırma
+
+1. **API 24+** ve mümkünse Play services içeren bir **AVD** oluşturun veya **USB hata ayıklaması** açık bir telefon bağlayın.
+2. Araç çubuğundan **`app`** çalıştırma yapılandırmasını seçin.
+3. **Çalıştır → 'app' Çalıştır** ile **`debug`** varyantı varsayılan debug anahtarıyla derlenir ve yüklenir.
+
+Tam özellik seti için çalışma zamanında istenen izinleri onaylayın: **kamera**, **kesin konum**, **bildirimler**, **arka plan konumu**.
+
+### Gösterim aktivasyon kodu
+
+Bu README’nin üstündeki **altı haneli aktivasyon kodu** yalnızca yerel gösterim içindir. Üretim öncesi **`EmbeddedActivationPayload`** ve Keystore ile mühürlü veriyi döndürün; demo sırlarını dağıtım kanallarından çıkarın.
+
+### Komut satırından derleme
+
+macOS / Linux kök dizininde:
 
 ```bash
 ./gradlew assembleDebug
 ```
 
-Release APK/AAB için kendi `signingConfig` yapılandırmanızı eklemeniz gerekir; şablonda uygulama kimliği `com.example.fieldflow` olarak geçer.
+Bağlı cihaza yükleme:
+
+```bash
+./gradlew installDebug
+```
+
+Windows’ta aynı görev adlarıyla **`gradlew.bat`** kullanın.
+
+### Sürüm paketleme
+
+**`release`** APK/AAB için **`signingConfig`** ile kendi anahtarlığınızı tanımlayın; parolaları ve anahtar dosyalarını Git’e koymayın (CI gizli değişkenleri, şifreli kasa veya yerel güvenli depolama). Şablonda **`applicationId`**:`com.example.fieldflow`; `app/build.gradle.kts` içinden değiştirilebilir.
 
 ---
 

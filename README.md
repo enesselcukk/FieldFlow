@@ -10,6 +10,8 @@ A multi-module Android app built with **Kotlin** and **Jetpack Compose** for fie
 
 ## Screen recording
 
+
+
 ---
 
 ## Table of contents
@@ -25,8 +27,7 @@ A multi-module Android app built with **Kotlin** and **Jetpack Compose** for fie
 - [Notifications and alerts](#notifications-and-alerts)
 - [Event log (audit trail)](#event-log-audit-trail)
 - [Data lifecycle, encryption, and device security](#data-lifecycle-encryption-and-device-security)
-- [Requirements](#requirements)
-- [Building and running](#building-and-running)
+- [Installation and setup](#installation-and-setup)
 - [Quality: tests and lint](#quality-tests-and-lint)
 - [Continuous integration (CI)](#continuous-integration-ci)
 - [Security and privacy notes](#security-and-privacy-notes)
@@ -532,22 +533,66 @@ The **ID scan** screen uses **CameraX** and **ML Kit Text Recognition**. `IdScan
 
 ---
 
-## Requirements
+## Installation and setup
 
-- **Android Studio** (a current release compatible with AGP 8.10.x is recommended)
-- **JDK**: project sources target **Java 11** language level. For local development, Android Studio’s bundled JDK is usually sufficient; **CI uses JDK 17** (Eclipse Temurin).
+### Prerequisites
 
----
+| Requirement | Notes |
+|-------------|--------|
+| **Android Studio** | Use a current stable build compatible with **AGP 8.10.x** (`gradle/libs.versions.toml`). Recent Hedgehog / Koala–series releases are typical baseline; upgrade Studio when Gradle sync repeatedly fails with plug-in mismatch errors. |
+| **JDK** | Kotlin sources compile against **Java 11**. Point Gradle at Android Studio’s bundled JDK (**Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JDK**) unless your organisation mandates another vendor build; CI runners validate against **Eclipse Temurin 17**. |
+| **Android SDK** | Install **API Level 36** platform packages to satisfy **`compileSdk` / `targetSdk`**. Maintain at least one emulator image at **`minSdk` 24** or higher for regression smoke tests. |
+| **Google Play services** | Prefer physical devices or emulator images **with Play Store / Play services**; fused location features rely on them. |
 
-## Building and running
+### Checkout and import
 
-From the repository root after cloning:
+1. Clone with Git or extract an archive of the repository root.
+2. In Android Studio choose **File → Open…** and select the directory containing **`settings.gradle.kts`** (repository root, not a submodule path).
+3. Trust the Gradle project when prompted by organisational policy.
+
+### Dependency synchronization
+
+Gradle sync starts automatically after import. Refresh manually via **File → Sync Project with Gradle Files**. The first sync resolves Maven coordinates declared in the Version Catalog, including **SQLCipher** native artifacts—allow outbound **HTTPS** or configure repository mirrors consistent with `settings.gradle.kts`.
+
+If the Android SDK lives outside default paths, define:
+
+```properties
+sdk.dir=/absolute/path/to/Android/sdk
+```
+
+…inside **`local.properties`** at the repository root (Studio typically generates this key automatically).
+
+### Running on a device or emulator
+
+1. Provision an **AVD** targeting **API 24+** with Play services where possible, or attach a handset with **USB debugging** enabled.
+2. Select the **`app`** Android run configuration from the toolbar.
+3. Invoke **Run → Run 'app'**. Studio builds and installs the **`debug`** variant signed with the Android debug keystore.
+
+Grant runtime permissions when prompted—**camera**, **fine location**, **post notifications**, and **background location** are required for full feature coverage described elsewhere in this document.
+
+### Demo onboarding credential
+
+The banner at the top of this README lists the **six-digit activation code** baked into the demo build. Rotate **`EmbeddedActivationPayload`**, refresh Keystore-sealed storage, and purge demo secrets **before** any production distribution.
+
+### Command-line builds
+
+From the repository root on macOS / Linux:
 
 ```bash
 ./gradlew assembleDebug
 ```
 
-For release APK/AAB you must add your own `signingConfig`; the template uses application id `com.example.fieldflow`.
+Push the debug binary to a connected device:
+
+```bash
+./gradlew installDebug
+```
+
+On Windows, call **`gradlew.bat`** with the same task names.
+
+### Release packaging
+
+Shipping **`release`** APK/AAB outputs requires configuring **`signingConfig`** with your keystore, storing credentials outside Git (CI secrets, encrypted vaults, or encrypted `gradle.properties` fragments). The template **`applicationId`** is **`com.example.fieldflow`** until you change it in `app/build.gradle.kts`.
 
 ---
 

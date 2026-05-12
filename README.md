@@ -574,7 +574,7 @@ When prompts appear, allow **camera**, **fine location**, **notifications**, and
 
 ### Demo onboarding credential
 
-The six-digit code at the top of this README is only for kicking the tires on the demo build. Before shipping anything real, rotate **`EmbeddedActivationPayload`**, refresh Keystore-backed storage, and strip demo secrets entirely.
+The six-digit code at the top of this README is only for trying the demo build.
 
 ### Command-line builds
 
@@ -639,5 +639,5 @@ Failed runs upload **`build/reports/`** and **`build/test-results/`** so you can
 See **[Data lifecycle, encryption, and device security](#data-lifecycle-encryption-and-device-security)** for how retention, SQLCipher, activation crypto, root detection, and location tracking fit together in code.
 
 - Don’t commit **signing keys** or API secrets—CI secrets, `local.properties`, or another vault is fine.
-- **Location**, **camera**, and **biometric** flows touch sensitive data; line up Play Console listings and your privacy policy with what you actually ship.
+- **Location**, **camera**, and **biometric** flows handle sensitive data.
 - On-device encryption gives everyday protection against casual storage inspection—easy to combine with broader governance as your compliance stack grows.

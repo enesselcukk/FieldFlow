@@ -574,7 +574,7 @@ Tam özellikler için çıkan izinleri kabul edin: **kamera**, **kesin konum**, 
 
 ### Gösterim aktivasyon kodu
 
-README’nin üstündeki **altı haneli kod** yalnızca demoyu denemek içindir. Gerçek dağıtım öncesi **`EmbeddedActivationPayload`**’ı döndürün, Keystore tarafını yenileyin ve demo sırlarını tamamen temizleyin.
+README’nin üstündeki **altı haneli kod** yalnızca demoyu denemek içindir.
 
 ### Komut satırından derleme
 
@@ -639,5 +639,5 @@ Başarısızlıkta **`build/reports/`** ve **`build/test-results/`** artifact ol
 Saklama, SQLCipher, etkinleştirme kriptosu, root tespiti ve konum izlemenin kodda nasıl birleştiği için bkz. **[Veri yaşam döngüsü, şifreleme ve cihaz güvenliği](#veri-yaşam-döngüsü-şifreleme-ve-cihaz-güvenliği)**.
 
 - **İmza anahtarı** veya API sırlarını repoya gömmeyin; CI gizli değişkeni, `local.properties` veya başka bir kasa yeterli.
-- **Konum**, **kamera** ve **biyometrik** akışlar hassas veri taşır; Play Console ve gizlilik metninizi gerçekten gönderdiğiniz davranışla hizalayın.
+- **Konum**, **kamera** ve **biyometrik** akışlar hassas veri taşır.
 - Cihaz üzerinde şifreleme, günlük kullanımda depolamayı meraklı gözlere karşı güçlendirir; geniş uyumluluk katmanlarıyla birlikte kullanılmaya uygundur.

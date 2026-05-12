@@ -2,7 +2,7 @@
 
 **Aktivasyon kodu :** **`123456`** — ilk kurulumda açılan aktivasyon ekranında **tam olarak** bu altı rakamı girin.
 
-Saha ve operasyon tarzı akışlar için **Kotlin** ve **Jetpack Compose** ile geliştirilmiş çok modüllü bir Android uygulamasıdır. Kimlik tarama (OCR), biyometrik doğrulama, etkinleştirme, harita ve konum, bildirimler, arka planda senkronizasyon ve olay günlüğünü bir araya getirir.
+Bu çok modüllü uygulama **Kotlin** ve **Jetpack Compose** ile yazıldı: saha tarzı akışlar (kimlik tarama/OCR), biyometrik doğrulama, aktivasyon, harita ve canlı konum, cihaz üzerinde bildirimler, arka planda senkron ve olay günlüğü—hepsi tek kod tabanında.
 
 **English:** [README.md](README.md)
 
@@ -48,13 +48,13 @@ https://github.com/user-attachments/assets/32b2ba24-16ed-467a-9d29-4d54e52cea31
 | **`:data`** | Android Library | Kalıcılık: Room, SQLCipher ile şifreli veritabanı, DataStore, AndroidX Security Crypto, Play Services Location, ML Kit |
 | **`:utils`** | Android Library | Ortak yardımcılar (ör. güvenlik / root tespiti) |
 
-Çoklu modül yapılandırması `settings.gradle.kts` içindedir; bağımlılık sürümleri **Version Catalog** (`gradle/libs.versions.toml`) ile merkezi yönetilir.
+Çoklu modül yapılandırması `settings.gradle.kts` içindedir; sürümler **Version Catalog** (`gradle/libs.versions.toml`) dosyasında toplanır.
 
 ---
 
 ## Mimari
 
-Uygulama **katmanlı, Clean Architecture ilhamlı** bir yapıdadır:
+Uygulama **katmanlı** bir yapıda kuruldu:
 
 - **Presentation**: Arayüz (Compose), kullanıcı etkileşimi, ViewModel.
 - **Domain**: Modeller ve iş kuralları.
@@ -109,42 +109,42 @@ flowchart TB
 
 ## Teknik gereksinimlerle uyum
 
-Bu alt bölüm, tipik ödev / teknik şartname maddelerinin FieldFlow’daki karşılığını özetler.
+FieldFlow’u tipik bir ödev veya teknik şartnameyle karşılaştırıyorsanız, maddelerin kodda nerede karşılık bulduğunu burada derledik.
 
 ### Mimari: katmanlı ayrım ve arayüz deseni
 
-- **Katmanlar**: Kod tabanı, yukarıda anlatılan **katmanlı (Clean Architecture ilhamlı)** sınırları kullanır: **presentation** (arayüz), **domain** (modeller + use case’ler), **data** (Room repository’leri, DataStore, platform köprüleri). Bağımlılıklar **domain**’e doğru içeridir.
+- **Katmanlar**: Kod tabanı, yukarıda anlatılan **katmanlı** sınırları kullanır: **presentation** (arayüz), **domain** (modeller + use case’ler), **data** (Room repository’leri, DataStore, platform köprüleri). Bağımlılıklar **domain**’e doğru içeridir.
 - **Arayüz deseni**: Sunum katmanında birincil desen **MVVM**’dir; **MVI** birincil desen olarak kullanılmaz:
   - Jetpack **`ViewModel`** + **`StateFlow`** / `*UiState` veri sınıfları (`IdScanUiState`, `MapUiState`, vb.).
   - Compose ekranları durumu yaşam döngüsüne uygun şekilde toplar ve eylemleri ViewModel veya lambda’lara iletir.
   - **`UseCase`** sınıfları tek sorumluluğu domain’de kapsar (`SaveLocationUseCase`, `ObserveRecentLocationsUseCase`, vb.).
-- **Sunum deseni notu**: Uygulama genelinde tek bir sealed `UiEvent` reducer kullanılmaz; durum güncellemeleri ekran bazlı ViewModel’lerde tutulur. Sonuç yapı **MVVM + tek yönlü durum akışı**dır; katı olay tabanlı MVI deposu değildir.
+- **Sunum deseni notu**: Tek bir sealed `UiEvent` reducer yok; her ekranın ViewModel’i kendi güncellemelerini tutuyor. Yapı **MVVM + tek yönlü durum**; katı bir MVI olay deposu değil.
 
 ### Kod kalitesi
 
 - **İsimlendirme**: Paketler ve tipler yaygın Kotlin/Android kalıplarına uyar (`*Repository`, `*UseCase`, `*ViewModel`, `*Screen`).
 - **Tekrar**: Yinelenen davranış mümkün olduğunca **domain use case** ve **repository** katmanına taşınır; paylaşılan arayüz parçaları gerektiğinde ayrıştırılır.
-- **Doğrulama**: Modüller arası **birim testleri** use case ve ViewModel gerilemelerine karşı koruma sağlar (bkz. [Kalite: test ve lint](#kalite-test-ve-lint)).
+- **Kontroller**: Modüller arası **birim testleri** use case ve ViewModel gerilemelerini yakalamaya yardım eder (bkz. [Kalite: test ve lint](#kalite-test-ve-lint)).
 
 ### Güvenlik (hassas veri + root)
 
 - **Şifreli saklama**: Konum geçmişi, olay günlükleri, bildirimler, geofence verisi vb. **aynı SQLCipher korumalı Room veritabanında** tutulur; parola **EncryptedSharedPreferences** içindedir. Ayrıntılar için bkz. [Veri yaşam döngüsü, şifreleme ve cihaz güvenliği](#veri-yaşam-döngüsü-şifreleme-ve-cihaz-güvenliği).
 - **Root**: **`RootDetector`** (`utils`), rootlanmış bir Android ortamına işaret edebilecek **Build.TAGS** ve bilinen sistem yolu / ikili kombinasyonlarını (**`su`**, **Magisk**, **`Superuser.apk`** vb.; sabit liste **`RootDetector`** içindedir) **sezgisel** olarak tarar. **`MainNavigationHost`**, kullanıcının uyarıyı onayladığı **`AlertDialog`** gösterir; **uygulama süreci bu kontrol yüzünden otomatik sonlandırılmaz**.
-- **Sınırlar**: Root tespiti **en iyi çaba** düzeyindedir; sıkı politikalar için Play Integrity veya MDM ile birleştirmek gerekir.
+- **Gerçekçi beklenti**: Root tespiti **en iyi çaba** düzeyindedir; sıkı politikalar için Play Integrity, MDM vb. ile birleştirin—tek başına yeterli saymayın.
 
 ### Hata yönetimi (kullanıcı vs teknik)
 
-- **İlke**: Hatalar geliştirici için **`Log`** ile kayda alınır; arayüzde ise **`strings.xml`** içindeki **kısa, yönlendirici** metinler gösterilir; ham `Exception.message` kullanıcıya düşürülmez.
+- **İlke**: Geliştirici tarafında **`Log`** ve stack trace; kullanıcı tarafında **`strings.xml`** içindeki **kısa, anlaşılır** metinler—ham `Exception.message` doğrudan gösterilmez.
 - **Örnekler**:
   - **Kimlik tarama**: CameraX / ML Kit hatalarında `id_scan_photo_capture_failed`, `id_scan_text_read_failed`, `image_processing_failed` gibi kaynaklar kullanılır; teknik ayrıntı **`Log.w`** ile kalır.
   - **Biyometrik**: `BiometricPrompt` hata kodları **`messageForPromptAuthenticationError`** ile kullanıcı güvenli dizelere (`biometric_unavailable`, kilit, zaman aşımı vb.) çevrilir; çerçeveden gelen ham metin gösterilmez.
-- **Denetlenecek noktalar**: Yeni ekranlarda aynı kural korunmalı—Compose / Toast üzerinde **`exception.message`** doğrudan gösterilmemeli.
+- **Yeni ekranlar**: Aynı alışkanlık geçerli—ham `exception.message`’ı Compose veya Toast’a yapıştırmadan önce süzmeyi unutmayın.
 
 ---
 
 ## Teknoloji yığını
 
-Aşağıdaki tablolar projede **doğrudan** kullanılan başlıca kütüphane ve araçları özetler. Tam sürümler `gradle/libs.versions.toml` içindeki **refs** ile uyumludur.
+Aşağıda Gradle’a gerçekten eklenen başlıca kütüphaneler var; tam sürüm referansları `gradle/libs.versions.toml` içinde.
 
 ### Platform ve dil
 
@@ -218,7 +218,7 @@ Aşağıdaki tablolar projede **doğrudan** kullanılan başlıca kütüphane ve
 
 ## Özellikler
 
-Kullanıcı akışı (özet):
+Kabaca kullanıcı akışı:
 
 1. **Açılış / kimlik tarama**: ML Kit OCR ve CameraX ile `IdScanScreen`.
 2. **Etkinleştirme**: Taramadan sonra `ActivationCodeScreen` aktivasyon kodu akışı.
@@ -277,7 +277,7 @@ Arka planda:
 
 ## Çevrimdışı çalışma
 
-Uygulama ayrı bir “çevrimdışı mod” anahtarı sunmaz; **yetkili kaynağı cihaz veritabanı** olarak ele alır ve yalnızca işletim sistemi **kullanılabilir bağlantı** bildirdiğinde ağa bağlı arka plan işlerini planlar.
+Ayrı bir “çevrimdışı mod” düğmesi yok. Veriler önce **cihaz veritabanında** duruyor; arka plan senkronu yalnızca işletim sistemi bağlantının gerçekten kullanılabilir olduğunu söylediğinde devreye giriyor—yani ağ kesilince de uygulama işlevini sürdürebiliyor.
 
 ### Bağlantı yokken yerel kalıcılık
 
@@ -387,11 +387,11 @@ Uyarılar **yerel bildirimdir**: **`NotificationHelper`** (`app` modülü) için
 | Düşük pil | Kısa satırda **pil yüzdesi** (`%1$d%%`) — operasyonel, GPS/kişisel veri değil | Tam açıklama detay ekranında |
 | Ön plan izleme | Genel aktif/çalışıyor mesajı | Koordinat yok |
 
-**İşleyiş ilkeleri**
+**Pratikte**
 
-- **`NotificationHelper`** gölgede **`BigTextStyle`** veya uzun gövde kullanmaz; hassas uzun metnin tekrarını önler.
-- **Uygulama içi liste satırları** (`NotificationListScreen`, `notificationSubtitle`) `extraArg` ile **tek satırlık özet** gösterebilir (ör. bölge etiketi); bu yüzey **OS gölgesinden farklı olarak uygulama içindedir**.
-- **Kalan risk**: Kilit ekranında bildirim içeriğinin görünmesi kullanıcı ve işletim sistemi ayarına bağlıdır; gölge metnini **yarı kamusal** kabul edip tanımlayıcıları azaltmaya devam edin (politika gerekiyorsa pil yüzdesini yalnızca uygulama içine taşımayı değerlendirin).
+- **`NotificationHelper`**, gölgede **`BigTextStyle`** veya uzun gövde kullanmıyor; hassas uzun metnin kopyalanmasını engelliyor.
+- **Liste satırları** (`NotificationListScreen`, `notificationSubtitle`) `extraArg` ile **tek satırlık özet** gösterebilir (ör. bölge adı); bu **uygulama içi** bir yüzey, OS gölgesi değil.
+- **Unutmayın**: Kilit ekranı önizlemesi kullanıcı ve OS ayarına bağlı; gölgeyi **yarı kamusal** sayıp tanımlayıcıları azaltın (gerekirse pil yüzdesini tamamen uygulama içine alın).
 
 ---
 
@@ -428,7 +428,7 @@ Varlık düzeyinde **`isSynced` / `syncedAt`** **`SyncWorker`** mutabakatı içi
 
 ## Veri yaşam döngüsü, şifreleme ve cihaz güvenliği
 
-Bu bölüm, yalnızca hangi kütüphanelerin eklendiğini değil, **kodun bugün nasıl davrandığını** anlatır.
+Bu bölümde **çalışan kodun ne yaptığını** anlatıyoruz; yalnızca hangi kütüphanelerin listeye eklendiğini değil.
 
 ### Konum geçmişi: 24 saatlik pencere (ve 7 günlük güvenlik ağı)
 
@@ -542,10 +542,10 @@ Güvenli bölgeler **dairesel** modellenir. **`GeofenceZone`**; **`centerLat`**,
 
 | Gereksinim | Notlar |
 |------------|--------|
-| **Android Studio** | **AGP 8.10.x** ile uyumlu güncel stabil sürüm (`gradle/libs.versions.toml`). Gradle senkronunda plug-in uyumsuzluğu varsa Studio’yu yükseltin. |
-| **JDK** | Kaynaklar **Java 11** dil seviyesine hedeflenmiştir. Gradle JDK olarak Android Studio’nun gömülü çalışma zamanını kullanın (**Ayarlar → Derleme … → Gradle → Gradle JDK**); CI ortamında **Eclipse Temurin 17** doğrulanır. |
-| **Android SDK** | **`compileSdk` / `targetSdk`** için **API 36** platform paketleri kurulu olmalı. **`minSdk` 24** ve üzeri en az bir emülatör imajı önerilir. |
-| **Google Play services** | Fused konum için fiziksel cihazda veya emülatörde **Play Store / Play services** bulunan imajlar tercih edilmelidir. |
+| **Android Studio** | **AGP 8.10.x** ile uyumlu güncel bir Studio (`gradle/libs.versions.toml`). Senkron hâlâ Android Gradle Plugin diye şikâyet ediyorsa önce Studio’yu yükseltin. |
+| **JDK** | Kaynaklar **Java 11** ile derlenir. Gradle JDK olarak Studio’nun gömülü JDK’sını kullanın (**Ayarlar → Derleme … → Gradle → Gradle JDK**) takımınız başka bir şey istemiyorsa; CI **Eclipse Temurin 17** kullanıyor. |
+| **Android SDK** | **`compileSdk` / `targetSdk`** için **API 36** kurulu olsun. En az bir **API 24+** emülatörle hızlı kontroller yapın. |
+| **Google Play services** | Fused konum Play services bekler—mümkünse **Play Store / Play services** olan cihaz veya emülatör kullanın. |
 
 ### Depoyu alma ve projeyi açma
 
@@ -555,27 +555,27 @@ Güvenli bölgeler **dairesel** modellenir. **`GeofenceZone`**; **`centerLat`**,
 
 ### Bağımlılık senkronizasyonu
 
-İçe aktarımdan sonra Gradle senkronu başlar. Gerekirse **Dosya → Gradle ile Proje Dosyalarını Senkronize Et**. İlk çözümleme, Version Catalog’taki Maven koordinatlarını (SQLCipher dahil) indirir — **`settings.gradle.kts`** ile uyumlu **HTTPS** erişimi veya kurumsal ayna kullanın.
+Projeyi açınca Gradle genelde kendi kendine senkron olur. Elle yenilemek için **Dosya → Gradle ile Proje Dosyalarını Senkronize Et**. İlk indirmede Version Catalog’taki her şey gelir (**SQLCipher** dahil)—kurumsal ağınız depoları aynalıyorsa `settings.gradle.kts` ile uyumlu olmalı; değilse normal **HTTPS** erişimi gerekir.
 
-SDK yolu varsayılan değilse kökte **`local.properties`** oluşturun:
+SDK varsayılan yerde değilse kökte **`local.properties`** ekleyin:
 
 ```properties
 sdk.dir=/mutlak/yol/Android/sdk
 ```
 
-Studio genelde bu dosyayı otomatik yazar.
+Studio genelde bu dosyayı sizin için yazar.
 
 ### Cihaz veya emülatörde çalıştırma
 
-1. **API 24+** ve mümkünse Play services içeren bir **AVD** oluşturun veya **USB hata ayıklaması** açık bir telefon bağlayın.
+1. Mümkünse Play services içeren **API 24+** bir **AVD** oluşturun ya da **USB hata ayıklaması** açık telefon bağlayın.
 2. Araç çubuğundan **`app`** çalıştırma yapılandırmasını seçin.
-3. **Çalıştır → 'app' Çalıştır** ile **`debug`** varyantı varsayılan debug anahtarıyla derlenir ve yüklenir.
+3. **Çalıştır → 'app' Çalıştır** — **`debug`** derlemesi varsayılan debug anahtarıyla yüklenir.
 
-Tam özellik seti için çalışma zamanında istenen izinleri onaylayın: **kamera**, **kesin konum**, **bildirimler**, **arka plan konumu**.
+Tam özellikler için çıkan izinleri kabul edin: **kamera**, **kesin konum**, **bildirimler**, **arka plan konumu**.
 
 ### Gösterim aktivasyon kodu
 
-Bu README’nin üstündeki **altı haneli aktivasyon kodu** yalnızca yerel gösterim içindir. Üretim öncesi **`EmbeddedActivationPayload`** ve Keystore ile mühürlü veriyi döndürün; demo sırlarını dağıtım kanallarından çıkarın.
+README’nin üstündeki **altı haneli kod** yalnızca demoyu denemek içindir. Gerçek dağıtım öncesi **`EmbeddedActivationPayload`**’ı döndürün, Keystore tarafını yenileyin ve demo sırlarını tamamen temizleyin.
 
 ### Komut satırından derleme
 
@@ -595,7 +595,7 @@ Windows’ta aynı görev adlarıyla **`gradlew.bat`** kullanın.
 
 ### Sürüm paketleme
 
-**`release`** APK/AAB için **`signingConfig`** ile kendi anahtarlığınızı tanımlayın; parolaları ve anahtar dosyalarını Git’e koymayın (CI gizli değişkenleri, şifreli kasa veya yerel güvenli depolama). Şablonda **`applicationId`**:`com.example.fieldflow`; `app/build.gradle.kts` içinden değiştirilebilir.
+**`release`** APK/AAB için kendi **`signingConfig`** ve anahtarlığınızı tanımlayın; parolaları Git’e yazmayın (CI gizli değişkenleri, kasa veya yerel `gradle.properties` parçası). Şablonda **`applicationId`** hâlâ **`com.example.fieldflow`**; `app/build.gradle.kts` içinden değiştirin.
 
 ---
 
@@ -607,7 +607,7 @@ Windows’ta aynı görev adlarıyla **`gradlew.bat`** kullanın.
 
 ### Birim test envanteri
 
-Testler Gradle ile JVM üzerinde çalışır (`testDebugUnitTest`). Android kitaplık modüllerinde gerektiğinde **Robolectric** kullanılır; ViewModel testleri için **kotlinx-coroutines-test** ve **`MainDispatcherRule`** (`presentation/src/test/.../MainDispatcherRule.kt`) `Dispatchers.Main` atamasını yönetir. Ortak sahte/stub nesneler `presentation/src/test/.../fakes/` altında (ör. `Stubs.kt`).
+Testler JVM üzerinde çalışır (`testDebugUnitTest`). Kitaplık modüllerde Android API veya gölge gerekiyorsa **Robolectric** devreye girer; ViewModel testleri için **kotlinx-coroutines-test** ve **`MainDispatcherRule`** (`presentation/src/test/.../MainDispatcherRule.kt`) `Dispatchers.Main`’i sabitler. Ortak sahte nesneler `presentation/src/test/.../fakes/` altında (ör. `Stubs.kt`).
 
 | Modül | Kapsanan alanlar | Örnek test sınıfları |
 |--------|------------------|----------------------|
@@ -617,26 +617,21 @@ Testler Gradle ile JVM üzerinde çalışır (`testDebugUnitTest`). Android kita
 | **`:utils`** | Root sezgisel tespiti, küçük uzantılar | `RootDetectorTest`, `StringExtensionsTest`, `ConstantExtensionsTest` |
 | **`:app`** | Rota serileştirme, uygulama sabitleri | `FieldFlowRouteSerializationTest`, `AppConstantsTest` |
 
-Şu anda `**/src/test` altında **22** adet `*Test.kt` dosyası vardır. `androidTest` altındaki enstrümantasyon/UI testleri bu repoda zorunlu değildir; CI yalnızca birim testleri ve lint çalıştırır.
+Şu anda `**/src/test` altında **22** adet `*Test.kt` dosyası var. `androidTest` UI testleri bu repoda şart değil; CI birim testi ve lint ile yetiniyor.
 
 ---
 
 ## Sürekli entegrasyon (CI)
 
-GitHub Actions iş akışı: `.github/workflows/fieldflow-build.yml` (**FieldFlow Build**).
+**FieldFlow Build** iş akışı `.github/workflows/fieldflow-build.yml` dosyasında. **Pull request**, `main` / `master` **push** ve elle **`workflow_dispatch`** ile tetiklenir.
 
-Tetikleyiciler: `pull_request`, `push` (`main` / `master`), `workflow_dispatch`.
+Her koşu repoyu alır, Gradle Wrapper’ı doğrular, **JDK 17 (Temurin)** kurar, Gradle’ı hazırlar ve şunu çalıştırır:
 
-Adımlar:
+```bash
+./gradlew assembleDebug testDebugUnitTest lint --no-daemon --stacktrace --warning-mode=all
+```
 
-1. Checkout  
-2. Gradle Wrapper doğrulama  
-3. JDK 17 (Temurin)  
-4. Gradle kurulumu  
-5. `./gradlew assembleDebug testDebugUnitTest lint --no-daemon --stacktrace --warning-mode=all`  
-6. Başarısızlıkta rapor artifact yükleme (`build/reports/`, `build/test-results/`)
-
-Aynı PR için eşzamanlı işler iptal edilir (`concurrency`).
+Başarısızlıkta **`build/reports/`** ve **`build/test-results/`** artifact olarak yüklenir; lint veya test çıktısına buradan bakılır. Aynı PR için eşzamanlı koşular iptal edilir (`concurrency`).
 
 ---
 
@@ -644,6 +639,6 @@ Aynı PR için eşzamanlı işler iptal edilir (`concurrency`).
 
 Saklama, SQLCipher, etkinleştirme kriptosu, root tespiti ve konum izlemenin kodda nasıl birleştiği için bkz. **[Veri yaşam döngüsü, şifreleme ve cihaz güvenliği](#veri-yaşam-döngüsü-şifreleme-ve-cihaz-güvenliği)**.
 
-- **İmza anahtarları** veya API sırlarını repoya koymayın; CI gizli değişkenleri veya yerel `local.properties` / güvenli mağaza kullanın.
-- **Konum**, **kamera** ve **biyometrik** veriler hassastır; Play Console ve gizlilik politikası açıklamalarını güncelleyin.
-- Yerel şifreleme, çevrimdışı depolama saldırılarına karşı eşiği yükseltir; **tam kurumsal bir tehdit modeli** değildir.
+- **İmza anahtarı** veya API sırlarını repoya gömmeyin; CI gizli değişkeni, `local.properties` veya başka bir kasa yeterli.
+- **Konum**, **kamera** ve **biyometrik** akışlar hassas veri taşır; Play Console ve gizlilik metninizi gerçekten gönderdiğiniz davranışla hizalayın.
+- Cihaz üzerinde şifreleme, depolamaya meraklısı saldırılara karşı eşiği yükseltir; **tam kurumsal tehdit modeli** yerine geçmez.

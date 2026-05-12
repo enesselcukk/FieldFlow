@@ -2,7 +2,7 @@
 
 **Activation code :** **`123456`** — enter exactly these six digits on the onboarding activation screen.
 
-A multi-module Android app built with **Kotlin** and **Jetpack Compose** for field and operations-style workflows. It brings together ID scanning (OCR), biometric verification, activation, maps and location, notifications, background sync, and an event log.
+**Kotlin** and **Jetpack Compose** drive this multi-module Android app: field-style flows with ID scanning (OCR), biometrics, activation, maps and live location, on-device notifications, background sync, and an event log—all in one codebase.
 
 **Türkçe:** [README.tr.md](README.tr.md)
 
@@ -48,13 +48,13 @@ https://github.com/user-attachments/assets/32b2ba24-16ed-467a-9d29-4d54e52cea31
 | **`:data`** | Android Library | Persistence: Room, SQLCipher-encrypted database, DataStore, AndroidX Security Crypto, Play Services Location, ML Kit |
 | **`:utils`** | Android Library | Shared helpers (e.g. security / root detection) |
 
-The multi-module layout is defined in `settings.gradle.kts`; dependency versions are centralized in the **Version Catalog** (`gradle/libs.versions.toml`).
+Modules are wired up in `settings.gradle.kts`; library versions live in the **Version Catalog** (`gradle/libs.versions.toml`).
 
 ---
 
 ## Architecture
 
-The app is organized in a **layered, Clean Architecture–inspired** split:
+The app is built in a **layered**, structured layout:
 
 - **Presentation**: UI (Compose), user interaction, ViewModels.
 - **Domain**: models and business rules.
@@ -109,43 +109,43 @@ flowchart TB
 
 ## Technical requirements alignment
 
-This subsection maps common assignment / RFP-style expectations to what FieldFlow implements today.
+If you’re checking FieldFlow against a typical assignment brief or technical checklist, here’s where those expectations show up in code.
 
 ### Architecture: layered separation and UI pattern
 
-- **Layers**: The codebase follows **layered (Clean Architecture–inspired)** boundaries already described above: **presentation** (UI), **domain** (models + use cases), **data** (Room repositories, DataStore, platform bridges). Dependencies point inward toward **domain**.
+- **Layers**: The codebase follows the **layered** boundaries outlined above: **presentation** (UI), **domain** (models + use cases), **data** (Room repositories, DataStore, platform bridges). Dependencies point inward toward **domain**.
 - **UI pattern**: The presentation layer uses **MVVM**, not MVI as the primary style:
   - Jetpack **`ViewModel`** + **`StateFlow`** / `*UiState` data classes (`IdScanUiState`, `MapUiState`, etc.).
   - Compose screens collect state with **`collectAsStateWithLifecycle`** (where used) and delegate actions back to the ViewModel or lambdas.
   - Domain **`UseCase`** classes encapsulate single responsibilities (e.g. `SaveLocationUseCase`, `ObserveRecentLocationsUseCase`).
-- **Presentation pattern note**: The app avoids a global sealed `UiEvent` reducer; state updates live per-screen inside ViewModels. The resulting shape is **MVVM with unidirectional state flows**, rather than a strict event-driven MVI store.
+- **Presentation pattern note**: There’s no global sealed `UiEvent` reducer—each screen’s ViewModel owns its updates. Think **MVVM with one-way state**, not a strict MVI event store.
 
 ### Code quality
 
 - **Naming**: Packages and types follow conventional Kotlin/Android naming (`*Repository`, `*UseCase`, `*ViewModel`, `*Screen`).
 - **Duplication**: Repeated behavior is pushed toward **domain use cases** and **repository implementations** rather than copy-pasted across Composables; shared UI pieces are extracted where practical.
-- **Verification**: **Unit tests** across modules (see [Quality: tests and lint](#quality-tests-and-lint)) help guard regressions in use cases and ViewModels.
+- **Safety net**: **Unit tests** across modules (see [Quality: tests and lint](#quality-tests-and-lint)) catch regressions in use cases and ViewModels.
 
 ### Security (sensitive data + root)
 
 - **Encrypted storage**: Location history, event logs, notifications, geofence data, etc. live in the **same SQLCipher-backed Room database**; the passphrase is held in **EncryptedSharedPreferences**. Details are in [Data lifecycle, encryption, and device security](#data-lifecycle-encryption-and-device-security).
 - **Root**: **`RootDetector`** (`utils`) combines **`Build.TAGS`** hints and filesystem **path/binary** checks (**`su`**, common **Magisk** locations, **`Superuser.apk`**) typical of rooted Android installs. **`MainNavigationHost`** shows an **`AlertDialog`** the user must acknowledge; **`MainActivity`** keeps running (**no forced process exit from this gate alone).
 
-- **Limits**: Root detection is **best-effort**; pairing with Play Integrity or MDM is recommended for strict policies.
+- **Reality check**: Root detection is **best-effort**. For strict policies, layer in Play Integrity, MDM, or similar—don’t rely on this alone.
 
 ### Error handling (user-facing vs technical)
 
-- **Principle**: Failures are **logged** for developers (`Log` / stack traces in logs) while the UI shows **short, actionable copy** from **`strings.xml`** (or mapped strings), not raw exception messages.
+- **Principle**: Developers see **`Log`** output and stack traces; users see **short, friendly copy** from **`strings.xml`** (or mapped strings)—never raw exception text.
 - **Examples**:
   - **ID scan**: CameraX / ML Kit failures call **`onError(...)`** with resources such as `id_scan_photo_capture_failed`, `id_scan_text_read_failed`, `image_processing_failed`; technical detail stays in **`Log.w`**.
   - **Biometrics**: `BiometricPrompt` error codes are mapped through **`messageForPromptAuthenticationError`** to user-safe strings (`biometric_unavailable`, lockout, timeout, etc.); vendor strings from the framework are **not** shown verbatim.
-- **Gaps to audit**: Any new screen should keep the same rule—**never** surface `exception.message` directly in Compose/Toast without sanitization.
+- **New screens**: Keep the same habit—**don’t** paste `exception.message` straight into Compose or Toasts without sanitizing it first.
 
 ---
 
 ## Technology stack
 
-The tables below summarize the main libraries and tools used **directly** in the project. Exact versions align with the **refs** in `gradle/libs.versions.toml`.
+Below is what actually lands in Gradle—main libraries only. Pin‑exact versions sit in `gradle/libs.versions.toml`.
 
 ### Platform and language
 
@@ -219,7 +219,7 @@ The tables below summarize the main libraries and tools used **directly** in the
 
 ## Features
 
-End-user flow (summary):
+Rough flow through the app:
 
 1. **Launch / ID scan**: `IdScanScreen` with ML Kit OCR and CameraX.
 2. **Activation**: After scan, `ActivationCodeScreen` activation code flow.
@@ -278,7 +278,7 @@ Background:
 
 ## Offline operation
 
-The app does **not** ship a separate “offline mode” switch; instead it behaves **offline-capable** by treating the device database as the **source of truth** and scheduling **network-gated** background work only when the OS reports usable connectivity.
+There’s no dedicated “offline mode” toggle. The phone’s database is treated as **source of truth**, and background sync only queues when the OS says connectivity is actually usable—so the app keeps working when the network drops.
 
 ### Local persistence while connectivity is unavailable
 
@@ -388,11 +388,11 @@ OS **status bar / shade** strings intentionally remain **generic** (`notif_*_tit
 | Battery low | Short line includes **battery percentage** (`%1$d%%`)—operational, not GPS/PII | Full prose in detail screen |
 | Foreground tracking | Generic active/run message | No coordinates |
 
-**Operational practices**
+**In practice**
 
-- **`NotificationHelper`** does **not** use **`BigTextStyle`** or expanded bodies that could duplicate sensitive prose in the shade.
-- **In-app list rows** (`NotificationListScreen`, `notificationSubtitle`) may show a **one-line summary** that includes `extraArg` (e.g. zone label)—that surface is **inside the authenticated app**, not the OS tray.
-- **Residual risk**: Any notification text can appear on **lock screens** depending on user/OS privacy settings; treat shade content as **semi-public** and keep minimizing identifiers (consider moving battery % entirely into the app if policy requires).
+- **`NotificationHelper`** skips **`BigTextStyle`** and long expanded bodies so the shade doesn’t echo sensitive paragraphs.
+- **In-app list rows** (`NotificationListScreen`, `notificationSubtitle`) can still show a **one-line summary** with `extraArg` (e.g. a zone label)—that stays **inside the app**, not the system tray.
+- **Heads-up**: Lock screens may still preview notification text depending on OS settings; treat the tray as **semi-public** and keep identifiers minimal (policy-heavy teams sometimes move battery % fully in-app).
 
 ---
 
@@ -429,7 +429,7 @@ The entity still carries **`isSynced` / `syncedAt`** for **`SyncWorker`** reconc
 
 ## Data lifecycle, encryption, and device security
 
-This section describes how the codebase actually behaves today—not just which libraries are on the classpath.
+This section is about **what the running code does**, not just which jars ship with it.
 
 ### Location history: the 24-hour window (and the seven-day safety net)
 
@@ -543,10 +543,10 @@ The **ID scan** screen uses **CameraX** and **ML Kit Text Recognition**. `IdScan
 
 | Requirement | Notes |
 |-------------|--------|
-| **Android Studio** | Use a current stable build compatible with **AGP 8.10.x** (`gradle/libs.versions.toml`). Recent Hedgehog / Koala–series releases are typical baseline; upgrade Studio when Gradle sync repeatedly fails with plug-in mismatch errors. |
-| **JDK** | Kotlin sources compile against **Java 11**. Point Gradle at Android Studio’s bundled JDK (**Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JDK**) unless your organisation mandates another vendor build; CI runners validate against **Eclipse Temurin 17**. |
-| **Android SDK** | Install **API Level 36** platform packages to satisfy **`compileSdk` / `targetSdk`**. Maintain at least one emulator image at **`minSdk` 24** or higher for regression smoke tests. |
-| **Google Play services** | Prefer physical devices or emulator images **with Play Store / Play services**; fused location features rely on them. |
+| **Android Studio** | A recent stable Studio that plays nicely with **AGP 8.10.x** (see `gradle/libs.versions.toml`). If sync keeps complaining about the Android Gradle Plugin, bump Studio first. |
+| **JDK** | Sources compile as **Java 11**. Let Gradle use Studio’s bundled JDK (**Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JDK**) unless your team says otherwise; CI runs on **Eclipse Temurin 17**. |
+| **Android SDK** | Install **API Level 36** so **`compileSdk` / `targetSdk`** match. Keep at least one emulator at **`minSdk` 24** or higher for smoke checks. |
+| **Google Play services** | Fused location expects Play services—use a device or emulator image **with Play Store / Play services** when you can. |
 
 ### Checkout and import
 
@@ -556,27 +556,27 @@ The **ID scan** screen uses **CameraX** and **ML Kit Text Recognition**. `IdScan
 
 ### Dependency synchronization
 
-Gradle sync starts automatically after import. Refresh manually via **File → Sync Project with Gradle Files**. The first sync resolves Maven coordinates declared in the Version Catalog, including **SQLCipher** native artifacts—allow outbound **HTTPS** or configure repository mirrors consistent with `settings.gradle.kts`.
+Gradle usually kicks off a sync right after open. To refresh by hand: **File → Sync Project with Gradle Files**. The first run downloads everything from the Version Catalog (including **SQLCipher** natives)—you’ll want normal **HTTPS** unless your org mirrors repos to match `settings.gradle.kts`.
 
-If the Android SDK lives outside default paths, define:
+If the SDK isn’t in the default location, add:
 
 ```properties
 sdk.dir=/absolute/path/to/Android/sdk
 ```
 
-…inside **`local.properties`** at the repository root (Studio typically generates this key automatically).
+…inside **`local.properties`** at the repo root (Studio usually writes this for you).
 
 ### Running on a device or emulator
 
-1. Provision an **AVD** targeting **API 24+** with Play services where possible, or attach a handset with **USB debugging** enabled.
-2. Select the **`app`** Android run configuration from the toolbar.
-3. Invoke **Run → Run 'app'**. Studio builds and installs the **`debug`** variant signed with the Android debug keystore.
+1. Create an **AVD** at **API 24+** with Play services when possible, or plug in a phone with **USB debugging** on.
+2. Pick the **`app`** run configuration in the toolbar.
+3. **Run → Run 'app'**. That builds and installs **`debug`**, signed with the default debug keystore.
 
-Grant runtime permissions when prompted—**camera**, **fine location**, **post notifications**, and **background location** are required for full feature coverage described elsewhere in this document.
+When prompts appear, allow **camera**, **fine location**, **notifications**, and **background location** if you want the full feature set described elsewhere.
 
 ### Demo onboarding credential
 
-The banner at the top of this README lists the **six-digit activation code** baked into the demo build. Rotate **`EmbeddedActivationPayload`**, refresh Keystore-sealed storage, and purge demo secrets **before** any production distribution.
+The six-digit code at the top of this README is only for kicking the tires on the demo build. Before shipping anything real, rotate **`EmbeddedActivationPayload`**, refresh Keystore-backed storage, and strip demo secrets entirely.
 
 ### Command-line builds
 
@@ -596,7 +596,7 @@ On Windows, call **`gradlew.bat`** with the same task names.
 
 ### Release packaging
 
-Shipping **`release`** APK/AAB outputs requires configuring **`signingConfig`** with your keystore, storing credentials outside Git (CI secrets, encrypted vaults, or encrypted `gradle.properties` fragments). The template **`applicationId`** is **`com.example.fieldflow`** until you change it in `app/build.gradle.kts`.
+**`release`** APK/AAB needs your own **`signingConfig`** and keystore—keep passwords out of Git (CI secrets, a vault, or a local `gradle.properties` snippet). The template **`applicationId`** is still **`com.example.fieldflow`** until you change `app/build.gradle.kts`.
 
 ---
 
@@ -608,7 +608,7 @@ Shipping **`release`** APK/AAB outputs requires configuring **`signingConfig`** 
 
 ### Unit test inventory
 
-Tests run on the JVM via Gradle (`testDebugUnitTest`). Android library modules use **Robolectric** where Android APIs or framework shadows are needed; **kotlinx-coroutines-test** and **`MainDispatcherRule`** (`presentation/src/test/.../MainDispatcherRule.kt`) pin `Dispatchers.Main` for ViewModel tests. Shared fakes/stubs live under `presentation/src/test/.../fakes/` (e.g. `Stubs.kt`).
+Tests run on the JVM (`testDebugUnitTest`). Library modules use **Robolectric** when tests need Android APIs or framework shadows; **kotlinx-coroutines-test** and **`MainDispatcherRule`** (`presentation/src/test/.../MainDispatcherRule.kt`) keep `Dispatchers.Main` predictable for ViewModels. Shared fakes live under `presentation/src/test/.../fakes/` (e.g. `Stubs.kt`).
 
 | Module | Areas covered | Example test classes |
 |--------|----------------|----------------------|
@@ -618,33 +618,28 @@ Tests run on the JVM via Gradle (`testDebugUnitTest`). Android library modules u
 | **`:utils`** | Root heuristics, small extensions | `RootDetectorTest`, `StringExtensionsTest`, `ConstantExtensionsTest` |
 | **`:app`** | Route serialization, app-level constants | `FieldFlowRouteSerializationTest`, `AppConstantsTest` |
 
-There are currently **22** `*Test.kt` files under `**/src/test`. Instrumentation/UI tests under `androidTest` are optional for this repo; CI runs unit tests and lint only.
+There are **22** `*Test.kt` files under `**/src/test`. `androidTest` UI tests are optional here; CI sticks to unit tests and lint.
 
 ---
 
 ## Continuous integration (CI)
 
-GitHub Actions workflow: `.github/workflows/fieldflow-build.yml` (**FieldFlow Build**).
+GitHub Actions workflow **FieldFlow Build** lives at `.github/workflows/fieldflow-build.yml`. It fires on **pull requests**, **pushes** to `main` / `master`, and manual **`workflow_dispatch`**.
 
-Triggers: `pull_request`, `push` to `main` / `master`, and `workflow_dispatch`.
+Each job checks out the repo, validates the Gradle Wrapper, installs **JDK 17 (Temurin)**, wires Gradle, then runs:
 
-Steps:
+```bash
+./gradlew assembleDebug testDebugUnitTest lint --no-daemon --stacktrace --warning-mode=all
+```
 
-1. Checkout  
-2. Gradle Wrapper validation  
-3. JDK 17 (Temurin)  
-4. Gradle setup  
-5. `./gradlew assembleDebug testDebugUnitTest lint --no-daemon --stacktrace --warning-mode=all`  
-6. On failure, upload report artifacts (`build/reports/`, `build/test-results/`)
-
-Concurrent runs for the same PR are cancelled (`concurrency`).
+Failed runs upload **`build/reports/`** and **`build/test-results/`** so you can inspect lint or test output. Only one active run per PR branch (`concurrency` cancels the rest).
 
 ---
 
 ## Security and privacy notes
 
-See **[Data lifecycle, encryption, and device security](#data-lifecycle-encryption-and-device-security)** for how retention, SQLCipher, activation crypto, root detection, and location tracking interact in code.
+See **[Data lifecycle, encryption, and device security](#data-lifecycle-encryption-and-device-security)** for how retention, SQLCipher, activation crypto, root detection, and location tracking fit together in code.
 
-- Do not commit **signing keys** or API secrets; use CI secrets or local `local.properties` / a secure store.
-- **Location**, **camera**, and **biometric** data are sensitive; update Play Console and privacy policy disclosures as needed.
-- Local encryption raises the bar for offline storage attacks but is **not** a full enterprise threat model.
+- Don’t commit **signing keys** or API secrets—CI secrets, `local.properties`, or another vault is fine.
+- **Location**, **camera**, and **biometric** flows touch sensitive data; line up Play Console listings and your privacy policy with what you actually ship.
+- On-device encryption raises the bar against casual storage snooping; it’s **not** the same as a full-blown enterprise threat review.

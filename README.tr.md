@@ -549,9 +549,9 @@ Güvenli bölgeler **dairesel** modellenir. **`GeofenceZone`**; **`centerLat`**,
 
 ### Depoyu alma ve projeyi açma
 
-1. Git ile klonlayın veya arşivi köke çıkarın.
-2. Android Studio’da **Dosya → Aç…** ile **`settings.gradle.kts`** dosyasının bulunduğu **depo kökünü** seçin (alt modül klasörü değil).
-3. Kurumsal politika uyarınca Gradle projesine güvenin.
+1. Projeyi **Git ile klonlayın** ya da indirdiğiniz arşivi bir klasöre çıkarın.
+2. Android Studio’da **Dosya → Aç…** deyin ve **`settings.gradle.kts`** dosyasının durduğu klasörü seçin — projenin ana dizini bu; `:app` gibi bir alt modül klasörünü değil.
+3. Studio güven uyarısı çıkarırsa projeye güvenmenizi isteyecektir; yerel geliştirme için **Trust / Güven** demek yeterli (Gradle projelerinde sıradan bir adım).
 
 ### Bağımlılık senkronizasyonu
 

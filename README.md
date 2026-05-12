@@ -550,9 +550,9 @@ The **ID scan** screen uses **CameraX** and **ML Kit Text Recognition**. `IdScan
 
 ### Checkout and import
 
-1. Clone with Git or extract an archive of the repository root.
-2. In Android Studio choose **File → Open…** and select the directory containing **`settings.gradle.kts`** (repository root, not a submodule path).
-3. Trust the Gradle project when prompted by organisational policy.
+1. **Clone** the repo with Git, or **download and unzip** the archive into a folder.
+2. In Android Studio use **File → Open…** and pick the folder where **`settings.gradle.kts`** lives — that’s the project root, not a nested module such as `:app`.
+3. If Studio asks whether to trust the project, choose **Trust** for normal local work (standard for Gradle projects).
 
 ### Dependency synchronization
 

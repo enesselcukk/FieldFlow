@@ -518,21 +518,21 @@ Güvenli bölgeler **dairesel** modellenir. **`GeofenceZone`**; **`centerLat`**,
 
 ### Kimlik tarama (OCR)
 
-**Kimlik tarama** ekranı **CameraX** ve **ML Kit Text Recognition** kullanır. `IdScanViewModel` OCR metnini `IdentityInfo` (ad/soyad) olarak ayrıştırır; veri **etkinleştirme** navigasyon akışında kullanılır. OCR çıktısı başka yerde kalıcı hale getirilmedikçe ayrı bir kasada şifrelenmez — uyumluluk (KVKK/GDPR) için **kod yollarını** takip edin.
+**Kimlik tarama** ekranı **CameraX** ve **ML Kit Text Recognition** kullanır. `IdScanViewModel` OCR metnini `IdentityInfo` (ad/soyad) olarak ayrıştırır; veri **etkinleştirme** navigasyon akışında kullanılır. OCR çıktısı başka yerde kalıcı hale getirilmedikçe ayrı bir kasada şifrelenmez.
 
 ### Olay günlüğü, geofence geçmişi, bildirimler
 
 - **Olay kayıtları** (`event_records`) ve **bildirimler**, senkronize konumlarla aynı şekilde **otomatik 24 saatlik silme**ye sahip değildir; budama veya kullanıcı silme API’leri eklenene kadar birikir.
 - Arayüzde **geofence olayları** varsayılan olarak `observeRecentEvents(limit = 50)` ile izlenir — son **adet** limiti, 24 saatlik kesme değil.
 
-### Tehdit modeli (kısa)
+### Güvenlik özeti (kısa)
 
-| Kontrol | Ne işe yarar | **Garanti etmediği** şeyler |
-|---------|----------------|-----------------------------|
-| SQLCipher + şifreli parola deposu | Cihaz hırsızlığı / uygulama depolamasının çevrimdışı kopyalanması | Root’lu saldırganın bellek okuması, root yetkili kötü amaçlı yazılım, yanlış yapılandırılmış yedekler |
-| Keystore + GCM (etkinleştirme) | Saklanan etkinleştirme materyalini kurcalamaya karşı mühür | APK tersine mühendisliğiyle gömülü sırlar, yan kanal saldırıları |
-| RootDetector + diyalog | Kullanıcı farkındalığı, hafif politika sinyali | Gizli root, bilinmeyen yollar, `su` ikili dosyası olmayan özel ROM’lar |
-| Ön plan konumu + açık izinler | Kullanıcıya görünür izleme, işletim sistemi onayı | GPS’i devre dışı bırakan kullanıcı, konum sahteciliği uygulamaları |
+| Katman | Tipik endişe | FieldFlow neyi güçlendirir |
+|--------|----------------|---------------------------|
+| SQLCipher + şifreli parola deposu | Cihazın çalınması veya uygulama depolamasının kopyalanması | Yerel veritabanı bekleyen şifrede kalır; parola düz metin olarak durmaz |
+| Keystore + GCM (etkinleştirme) | Disk üzerindeki aktivasyon verisinin kurcalanması | Donanım destekli mühürle sıradan müdahaleyi zorlaştırır |
+| Root tespiti + diyalog | Özelleştirilmiş veya rootlu Android ortamı | Kullanıcı oturuma güvenmeden önce net bir uyarı görür |
+| Ön plan konumu + açık izinler | Görünmez arka plan izlemesi | İzleme görünür ön plan bildirimi ve açık çalışma zamanı izinleriyle bağlıdır |
 
 ---
 

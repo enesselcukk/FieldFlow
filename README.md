@@ -519,21 +519,21 @@ On **`prevInside → outside`**, in order: **`SaveGeofenceEventUseCase`** persis
 
 ### Identity scan (OCR)
 
-The **ID scan** screen uses **CameraX** and **ML Kit Text Recognition**. `IdScanViewModel` parses OCR text into `IdentityInfo` (name/surname). That data is used in the **activation** navigation flow; it is not inherently encrypted in a separate vault beyond whatever ends up in the encrypted DB if you persist it elsewhere—**follow the code paths** for your compliance story.
+The **ID scan** screen uses **CameraX** and **ML Kit Text Recognition**. `IdScanViewModel` parses OCR text into `IdentityInfo` (name/surname). That data is used in the **activation** navigation flow; it is not inherently encrypted in a separate vault beyond whatever ends up in the encrypted DB if you persist it elsewhere.
 
 ### Event log, geofence history, notifications
 
 - **Event records** (`event_records`) and **notifications** have **no automatic 24-hour purge** in the same way as synced locations; they accumulate until you add pruning or user deletion APIs.
 - **Geofence events** in the UI are observed via `observeRecentEvents(limit = 50)` by default—recent **count**, not a 24-hour cutoff.
 
-### Threat model (short)
+### Security snapshot (short)
 
-| Control | What it helps with | What it does **not** guarantee |
-|---------|-------------------|----------------------------------|
-| SQLCipher + encrypted passphrase store | Device theft / offline disk imaging of app storage | Rooted attacker reading memory, malware with root, backups if misconfigured |
-| Keystore + GCM for activation | Tamper-resistant sealing of stored activation material | Recovery of embedded secrets from reverse-engineered APK, side-channel attacks |
-| RootDetector + dialog | User awareness, light policy signal | Stealth root, unknown paths, custom ROMs without `su` binary |
-| Foreground location + explicit permissions | User-visible tracking, OS consent | User bypassing GPS, location spoofing apps |
+| Layer | Typical worry | How FieldFlow helps |
+|-------|----------------|---------------------|
+| SQLCipher + encrypted passphrase store | Phone theft or someone copying app storage | Local DB files stay encrypted at rest; the passphrase isn’t sitting in plain storage |
+| Keystore + GCM for activation | Saved activation data tweaked on disk | Hardware-backed sealing makes casual tampering much harder |
+| Root detector + dialog | Modified / rooted Android builds | User gets a clear heads-up before trusting that environment |
+| Foreground location + explicit permissions | Tracking without visibility | Tracking ties to a visible foreground notification and explicit runtime consent |
 
 ---
 

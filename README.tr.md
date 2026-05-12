@@ -109,7 +109,7 @@ flowchart TB
 
 ## Teknik gereksinimlerle uyum
 
-FieldFlow’u tipik bir ödev veya teknik şartnameyle karşılaştırıyorsanız, maddelerin kodda nerede karşılık bulduğunu burada derledik.
+FieldFlow, tipik bir ödev veya teknik şartname kapsamında beklenen maddeleri karşılayacak şekilde düzenlenmiş bir projedir; bu maddelerin kodda nerede olduğunu aşağıda topladık.
 
 ### Mimari: katmanlı ayrım ve arayüz deseni
 

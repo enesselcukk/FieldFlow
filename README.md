@@ -109,7 +109,7 @@ flowchart TB
 
 ## Technical requirements alignment
 
-If you’re checking FieldFlow against a typical assignment brief or technical checklist, here’s where those expectations show up in code.
+FieldFlow is laid out to meet expectations you’d see in a typical coursework brief or technical spec; below we map those items to where they live in the code.
 
 ### Architecture: layered separation and UI pattern
 

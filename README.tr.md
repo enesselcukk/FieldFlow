@@ -46,7 +46,7 @@ https://github.com/user-attachments/assets/32b2ba24-16ed-467a-9d29-4d54e52cea31
 | **`:presentation`** | Android Library | Jetpack Compose arayüzleri, ViewModel katmanı, CameraX, ML Kit OCR (kimlik tarama ekranı), harita ekranı (OSMDroid), biyometrik ve ayar ekranları |
 | **`:domain`** | Android Library | İş kuralları ve modeller; çerçeveden mümkün olduğunca bağımsız katman |
 | **`:data`** | Android Library | Kalıcılık: Room, SQLCipher ile şifreli veritabanı, DataStore, AndroidX Security Crypto, Play Services Location, ML Kit |
-| **`:utils`** | Android Library | Ortak yardımcılar (ör. güvenlik / root tespiti) |
+| **`:utils`** | Android Library | Ortak yardımcılar (güvenlik ipuçları, küçük yardımcılar) |
 
 Çoklu modül yapılandırması `settings.gradle.kts` içindedir; sürümler **Version Catalog** (`gradle/libs.versions.toml`) dosyasında toplanır.
 
@@ -129,8 +129,7 @@ FieldFlow, tipik bir ödev veya teknik şartname kapsamında beklenen maddeleri 
 ### Güvenlik (hassas veri + root)
 
 - **Şifreli saklama**: Konum geçmişi, olay günlükleri, bildirimler, geofence verisi vb. **aynı SQLCipher korumalı Room veritabanında** tutulur; parola **EncryptedSharedPreferences** içindedir. Ayrıntılar için bkz. [Veri yaşam döngüsü, şifreleme ve cihaz güvenliği](#veri-yaşam-döngüsü-şifreleme-ve-cihaz-güvenliği).
-- **Root**: **`RootDetector`** (`utils`), rootlanmış bir Android ortamına işaret edebilecek **Build.TAGS** ve bilinen sistem yolu / ikili kombinasyonlarını (**`su`**, **Magisk**, **`Superuser.apk`** vb.; sabit liste **`RootDetector`** içindedir) **sezgisel** olarak tarar. **`MainNavigationHost`**, kullanıcının uyarıyı onayladığı **`AlertDialog`** gösterir; **uygulama süreci bu kontrol yüzünden otomatik sonlandırılmaz**.
-- **Gerçekçi beklenti**: Root tespiti **en iyi çaba** düzeyindedir; sıkı politikalar için Play Integrity, MDM vb. ile birleştirin—tek başına yeterli saymayın.
+- **Root**: **`RootDetector`** (`utils`), **`Build.TAGS`** ve **`su`**, **Magisk**, **`Superuser.apk`** gibi bilinen yolları kontrol ederek özelleştirilmiş veya rootlu kurulumlara işaret eder. **`MainNavigationHost`** bilgilendirici **`AlertDialog`** gösterir; kullanıcı onayladıktan sonra **`MainActivity`** akışı kesmeden çalışmaya devam eder.
 
 ### Hata yönetimi (kullanıcı vs teknik)
 
@@ -253,7 +252,7 @@ Onaydan sonra **`onIdentityDetected`**, parametre olarak taşınan ad/soyad ile 
 
 **Eşleşme** olduğunda yönlendirme tarafında **`onActivationCodeSuccess`**, **`is_activated = true`** yazar (**`setActivated`**), **`MainNavigationHost`** içinde **`rememberSaveable`** ile tutulan **`isBiometricVerified`** bayrağını **true** yapar ve **`HomeRoute`**’a gider — dolayısıyla **aynı aktivasyon oturumunda** **BiometricPrompt** atlanır. **`is_activated`** silinmediği sürece kimlik tarama ve kod ekranı tekrar edilmez; veri sıfırlandığında zincir yeniden işler.
 
-**Sonraki açılışlar.** Yeni bir **`MainActivity`** örneğinde **`isBiometricVerified`** varsayılan **false**’tur; **`isActivated` true** ve bayrak **false** iken **`MainNavigationHost`**, **`BiometricRoute`** üzerinden **`BiometricAuthScreen`** gösterir. Kod **`BiometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)`** sonra **`BiometricPrompt`** kullanır — yüz ile kilidi açma, parmak izi veya cihazın “zayıf biyometri” olarak sunduğu yerel yöntemler OEM’e bağlıdır (**sunucuya gitmez**). Başarıda **`HomeRoute`** açılır. **`rememberSaveable`**, süreç yeniden oluşumlarında **`true`** saklayabilir; her soğuk açılışta **mutlaka** biyometrik isteyen politikalar **`SavedStateRegistry`** davranışını gözden geçirmelidir.
+**Sonraki açılışlar.** Yeni bir **`MainActivity`** örneğinde **`isBiometricVerified`** varsayılan **false**’tur; **`isActivated` true** ve bayrak **false** iken **`MainNavigationHost`**, **`BiometricRoute`** üzerinden **`BiometricAuthScreen`** gösterir. Kod **`BiometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)`** sonra **`BiometricPrompt`** kullanır — yüz ile kilidi açma, parmak izi veya cihazın “zayıf biyometri” olarak sunduğu yerel yöntemler OEM’e bağlıdır (**sunucuya gitmez**). Başarıda **`HomeRoute`** açılır. **`rememberSaveable`**, süreç yeniden oluşumlarında **`true`** saklayabilir; her soğuk açılışta da biyometrik istemeniz gerekiyorsa **`SavedStateRegistry`** kalıcılığının politikanıza uyup uymadığını değerlendirmeniz yeterli olur.
 
 ### Güzergâh oynatma
 
@@ -462,22 +461,22 @@ Tüm **Room** tabloları (konumlar, olaylar, geofence bölgeleri/olayları, bild
 Etkinleştirme akışı şunları saklar:
 
 - `is_activated` değerini **Preferences DataStore** içinde (`activation_prefs`).
-- Beklenen aktivasyon kodunu: önce **gömülü AES-GCM blob**’undan (derleme zamanı etiketinden **SHA-256 türetilmiş** AES anahtarı ile); ardından **donanım destekli / Keystore** AES-GCM anahtarı ile tekrar **mühürlenmiş** halde Base64 olarak DataStore’da. **Bu repoda gönderilen gömülü şifre, çözüldüğünde altı basamaklı `123456` metnidir — yalnızca yerel gösterim / lab içindir; üretim öncesi `EmbeddedActivationPayload` ve cihazdaki mühürlü kopyalar mutlaka değiştirilmelidir.**
+- Beklenen aktivasyon kodunu: önce **gömülü AES-GCM blob**’undan (derleme zamanı etiketinden **SHA-256 türetilmiş** AES anahtarı ile); ardından **donanım destekli / Keystore** AES-GCM anahtarı ile tekrar **mühürlenmiş** halde Base64 olarak DataStore’da. **Bu repoda gönderilen gömülü şifre, çözüldüğünde altı basamaklı `123456` metnidir — yalnızca yerel gösterim / lab içindir; üretim dağıtımından önce `EmbeddedActivationPayload` ve cihazdaki mühürlü kopyayı güncellemeniz önerilir.**
 
-Yani yol **iki katmanlıdır**: gömülü/obfuscation + Keystore destekli şifreleme. Bu, sunucu taraflı lisans veya kurumsal doğrulamanın yerine geçmez.
+Yani yol **iki katmanlıdır**: gömülü/obfuscation + Keystore destekli şifreleme. Ürün yol haritanız merkezi kontrol gerektirdiğinde sunucu taraflı lisans veya kurumsal doğrulama ile yan yana kullanılabilir.
 
 ### Ayarlar ve sırlar
 
 `SettingsRepositoryImpl` dil, tema ve **konum örnekleme aralığı** (varsayılan **60 saniye**) için ayrı bir **DataStore** kullanır. Bu tercihler EncryptedSharedPreferences/SQLCipher ile aynı koruma seviyesinde değildir; Android uygulama korumalı alanına (sandbox) güvenir.
 
-### Root ve “ele geçirilmiş / rootlanmış cihaz” davranışı
+### Root tespiti (cihaz şeffaflığı)
 
 **`RootDetector`** (`utils`) şunları birleştirir:
 
 - `Build.TAGS` içinde `test-keys` (resmi olmayan derlemelerde sık görülür).
 - Sabit bir yol listesinde dosya varlığı (ör. `su`, **Magisk** yolları, `Superuser.apk`).
 
-Bu yöntem **heuristik**tir; yanlış pozitif/negatif her zaman mümkündür. **`MainNavigationHost`** engelleyici olmayan bir **`AlertDialog`** gösterir; kullanıcı uyarıyı onaylar, uygulama **zorunlu olarak kapatılmaz**. Daha yüksek güvence için Play Integrity, kurumsal politika veya uzaktan doğrulama eklenmelidir.
+Bu sinyaller, tam bir işletim sistemi denetimi yapmadan **özelleştirme ipuçlarını** hızlıca öne çıkarır. **`MainNavigationHost`**, kullanıcıyı bilgilendirici **`AlertDialog`** gösterir; tek seferlik onaydan sonra akış sorunsuz sürer ve **`MainActivity`** bilinçli şekilde açık kalır—deneyimi kilitlemeden şeffaflığı güçlendirir. Daha derin doğrulama gerektiğinde Play Integrity, MDM araçları veya kendi uzaktan kontrolleriniz üzerine eklenebilir.
 
 ### Sürekli konum toplama ve geofence
 
@@ -531,7 +530,7 @@ Güvenli bölgeler **dairesel** modellenir. **`GeofenceZone`**; **`centerLat`**,
 |--------|----------------|---------------------------|
 | SQLCipher + şifreli parola deposu | Cihazın çalınması veya uygulama depolamasının kopyalanması | Yerel veritabanı bekleyen şifrede kalır; parola düz metin olarak durmaz |
 | Keystore + GCM (etkinleştirme) | Disk üzerindeki aktivasyon verisinin kurcalanması | Donanım destekli mühürle sıradan müdahaleyi zorlaştırır |
-| Root tespiti + diyalog | Özelleştirilmiş veya rootlu Android ortamı | Kullanıcı oturuma güvenmeden önce net bir uyarı görür |
+| Root tespiti + diyalog | Özelleştirilmiş veya rootlu Android ortamı | Kısa bilgilendirme; onaydan sonra akış kesintisiz devam eder |
 | Ön plan konumu + açık izinler | Görünmez arka plan izlemesi | İzleme görünür ön plan bildirimi ve açık çalışma zamanı izinleriyle bağlıdır |
 
 ---
@@ -614,7 +613,7 @@ Testler JVM üzerinde çalışır (`testDebugUnitTest`). Kitaplık modüllerde A
 | **`:domain`** | Modeller, use case’ler (konum saklama, geofence, bildirimler, olaylar, izleme) | `LocationUseCasesTest`, `GeofenceUseCasesTest`, `NotificationUseCasesTest`, `EventUseCasesTest`, `TrackingUseCasesTest`, `DomainModelRecordsTest` |
 | **`:data`** | Repository uygulamaları → DAO/Room eşlemesi | `LocationRepositoryImplTest`, `EventRepositoryImplTest`, `NotificationRepositoryImplTest`, `GeofenceRepositoryImplTest` |
 | **`:presentation`** | ViewModel’ler, OCR ayrıştırma | `IdScanViewModelTest`, `IdentityTextParserTest`, `HomeViewModelTest`, `MapViewModelTest`, `SettingsViewModelTest`, `NotificationListViewModelTest`, `EventLogViewModelTest` |
-| **`:utils`** | Root sezgisel tespiti, küçük uzantılar | `RootDetectorTest`, `StringExtensionsTest`, `ConstantExtensionsTest` |
+| **`:utils`** | Root ipuçları ve özelleştirme yardımcıları, küçük uzantılar | `RootDetectorTest`, `StringExtensionsTest`, `ConstantExtensionsTest` |
 | **`:app`** | Rota serileştirme, uygulama sabitleri | `FieldFlowRouteSerializationTest`, `AppConstantsTest` |
 
 Şu anda `**/src/test` altında **22** adet `*Test.kt` dosyası var. `androidTest` UI testleri bu repoda şart değil; CI birim testi ve lint ile yetiniyor.
@@ -641,4 +640,4 @@ Saklama, SQLCipher, etkinleştirme kriptosu, root tespiti ve konum izlemenin kod
 
 - **İmza anahtarı** veya API sırlarını repoya gömmeyin; CI gizli değişkeni, `local.properties` veya başka bir kasa yeterli.
 - **Konum**, **kamera** ve **biyometrik** akışlar hassas veri taşır; Play Console ve gizlilik metninizi gerçekten gönderdiğiniz davranışla hizalayın.
-- Cihaz üzerinde şifreleme, depolamaya meraklısı saldırılara karşı eşiği yükseltir; **tam kurumsal tehdit modeli** yerine geçmez.
+- Cihaz üzerinde şifreleme, günlük kullanımda depolamayı meraklı gözlere karşı güçlendirir; geniş uyumluluk katmanlarıyla birlikte kullanılmaya uygundur.

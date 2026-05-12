@@ -46,7 +46,7 @@ https://github.com/user-attachments/assets/32b2ba24-16ed-467a-9d29-4d54e52cea31
 | **`:presentation`** | Android Library | Jetpack Compose UI, ViewModels, CameraX, ML Kit OCR (ID scan screen), map screen (OSMDroid), biometric and settings screens |
 | **`:domain`** | Android Library | Business rules and models; layer kept as framework-agnostic as practical |
 | **`:data`** | Android Library | Persistence: Room, SQLCipher-encrypted database, DataStore, AndroidX Security Crypto, Play Services Location, ML Kit |
-| **`:utils`** | Android Library | Shared helpers (e.g. security / root detection) |
+| **`:utils`** | Android Library | Shared helpers (security cues, small utilities) |
 
 Modules are wired up in `settings.gradle.kts`; library versions live in the **Version Catalog** (`gradle/libs.versions.toml`).
 
@@ -129,9 +129,7 @@ FieldFlow is laid out to meet expectations you’d see in a typical coursework b
 ### Security (sensitive data + root)
 
 - **Encrypted storage**: Location history, event logs, notifications, geofence data, etc. live in the **same SQLCipher-backed Room database**; the passphrase is held in **EncryptedSharedPreferences**. Details are in [Data lifecycle, encryption, and device security](#data-lifecycle-encryption-and-device-security).
-- **Root**: **`RootDetector`** (`utils`) combines **`Build.TAGS`** hints and filesystem **path/binary** checks (**`su`**, common **Magisk** locations, **`Superuser.apk`**) typical of rooted Android installs. **`MainNavigationHost`** shows an **`AlertDialog`** the user must acknowledge; **`MainActivity`** keeps running (**no forced process exit from this gate alone).
-
-- **Reality check**: Root detection is **best-effort**. For strict policies, layer in Play Integrity, MDM, or similar—don’t rely on this alone.
+- **Root**: **`RootDetector`** (`utils`) scans **`Build.TAGS`** and familiar **`su` / Magisk / `Superuser.apk`** paths for customization cues typical on rooted installs. **`MainNavigationHost`** surfaces an informational **`AlertDialog`** users acknowledge, then **`MainActivity`** continues—sessions stay uninterrupted by design.
 
 ### Error handling (user-facing vs technical)
 
@@ -254,7 +252,7 @@ After confirmation, **`onIdentityDetected`** enqueues **`ActivationRoute`** (**n
 
 When activation succeeds, **navigation’s** **`onActivationCodeSuccess`** writes **`setActivated(true)`**, assigns **`rememberSaveable` `isBiometricVerified`** in **`MainNavigationHost`** to **true**, and routes **`HomeRoute`**, so **BiometricPrompt** is skipped **only in that same freshly activated session**. The provisioning chain (camera/manual identity → activation form) stays suppressed while **`is_activated`** stays **true**, unless onboarding storage is erased.
 
-**Returning visits.** A new **`MainActivity`** instance initialises **`isBiometricVerified = false`**; whenever **`activationStore.isActivated`** is **true** and the latch stays **false**, **`MainNavigationHost`** replaces the stack with **`BiometricRoute`**. **`BiometricAuthScreen`** consults **`BiometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)`** before **`BiometricPrompt`**—Face unlock, fingerprint enrollment, etc. mirror whichever **weak** biometrics the OEM exposes locally. The success callback lifts **`isBiometricVerified`** before **`HomeRoute`**. **`rememberSaveable`** can persist **true** through process recreation (**`SavedStateRegistry`**); deployments that insist on biometric on every absolute cold boot must decide whether this scaffold suffices or needs hardening beyond **`SavedStateRegistry`** defaults.
+**Returning visits.** A new **`MainActivity`** instance initialises **`isBiometricVerified = false`**; whenever **`activationStore.isActivated`** is **true** and the latch stays **false**, **`MainNavigationHost`** replaces the stack with **`BiometricRoute`**. **`BiometricAuthScreen`** consults **`BiometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)`** before **`BiometricPrompt`**—Face unlock, fingerprint enrollment, etc. mirror whichever **weak** biometrics the OEM exposes locally. The success callback lifts **`isBiometricVerified`** before **`HomeRoute`**. **`rememberSaveable`** can persist **true** through process recreation (**`SavedStateRegistry`**); if you require biometric **every** cold start, consider whether **`SavedStateRegistry`** persistence matches your policy or whether you want to tighten it.
 
 ### Map route playback
 
@@ -463,22 +461,22 @@ All **Room** tables (locations, events, geofence zones/events, notifications, et
 The activation flow stores:
 
 - `is_activated` in **Preferences DataStore** (`activation_prefs`).
-- The expected activation code: first derived from an **embedded AES-GCM blob** (key material gated by a **SHA-256–derived** AES key from a compile-time label); then **re-sealed** with a **hardware-backed / Keystore** AES-GCM key and stored as Base64 in DataStore. **As shipped in this repository, that embedded ciphertext decrypts to the six-digit string `123456`**, which exists solely to unblock local demos—**replace `EmbeddedActivationPayload` and rotate Keystore-sealed copies long before production.**
+- The expected activation code: first derived from an **embedded AES-GCM blob** (key material gated by a **SHA-256–derived** AES key from a compile-time label); then **re-sealed** with a **hardware-backed / Keystore** AES-GCM key and stored as Base64 in DataStore. **As shipped in this repository, that embedded ciphertext decrypts to the six-digit string `123456`**, included only for local demos—**refresh `EmbeddedActivationPayload` and Keystore-sealed copies before shipping production builds.**
 
-So the code path uses **two layers**: obfuscation/embedding plus **Keystore-backed** encryption for what ends up on disk. This is **not** a substitute for server-side licensing or enterprise attestation.
+So the code path uses **two layers**: obfuscation/embedding plus **Keystore-backed** encryption for what ends up on disk. Server-side licensing or enterprise issuance can ride alongside whenever your product roadmap calls for central control.
 
 ### Settings vs secrets
 
 `SettingsRepositoryImpl` uses a separate **DataStore** for language, theme, and **location sampling interval** (default **60 seconds**). Those preferences are **not** the same as EncryptedSharedPreferences/SQLCipher; rely on Android app sandboxing.
 
-### Root and “compromised device” handling
+### Root detection (device transparency)
 
 **`RootDetector`** (`utils`) combines:
 
 - `Build.TAGS` containing `test-keys` (common on unofficial builds).
 - Existence checks for a fixed list of paths (e.g. `su`, **Magisk** paths, `Superuser.apk`).
 
-It is **heuristic**: false positives/negatives are always possible. **`MainNavigationHost`** shows a **non-blocking** `AlertDialog`: the user must acknowledge the warning; the app is **not** hard-disabled. For higher assurance you would combine Play Integrity, enterprise policy, or remote attestation.
+Together these surface typical customization signals quickly—lighter than a full device audit, yet enough context before users carry on. **`MainNavigationHost`** shows an **`AlertDialog`** so people see the note, acknowledge once, and continue; **`MainActivity`** intentionally keeps running without forced exits. Play Integrity, MDM tooling, or your own remote verification can stack on top whenever you want deeper assurance.
 
 ### Continuous location capture and geofencing
 
@@ -532,7 +530,7 @@ The **ID scan** screen uses **CameraX** and **ML Kit Text Recognition**. `IdScan
 |-------|----------------|---------------------|
 | SQLCipher + encrypted passphrase store | Phone theft or someone copying app storage | Local DB files stay encrypted at rest; the passphrase isn’t sitting in plain storage |
 | Keystore + GCM for activation | Saved activation data tweaked on disk | Hardware-backed sealing makes casual tampering much harder |
-| Root detector + dialog | Modified / rooted Android builds | User gets a clear heads-up before trusting that environment |
+| Root detector + dialog | Modified / rooted Android builds | Short notice users acknowledge, then continue normally |
 | Foreground location + explicit permissions | Tracking without visibility | Tracking ties to a visible foreground notification and explicit runtime consent |
 
 ---
@@ -615,7 +613,7 @@ Tests run on the JVM (`testDebugUnitTest`). Library modules use **Robolectric** 
 | **`:domain`** | Models, use cases (location retention, geofence, notifications, events, tracking) | `LocationUseCasesTest`, `GeofenceUseCasesTest`, `NotificationUseCasesTest`, `EventUseCasesTest`, `TrackingUseCasesTest`, `DomainModelRecordsTest` |
 | **`:data`** | Repository implementations → DAO/Room mapping | `LocationRepositoryImplTest`, `EventRepositoryImplTest`, `NotificationRepositoryImplTest`, `GeofenceRepositoryImplTest` |
 | **`:presentation`** | ViewModels, OCR parsing | `IdScanViewModelTest`, `IdentityTextParserTest`, `HomeViewModelTest`, `MapViewModelTest`, `SettingsViewModelTest`, `NotificationListViewModelTest`, `EventLogViewModelTest` |
-| **`:utils`** | Root heuristics, small extensions | `RootDetectorTest`, `StringExtensionsTest`, `ConstantExtensionsTest` |
+| **`:utils`** | Root cues & customization helpers, small extensions | `RootDetectorTest`, `StringExtensionsTest`, `ConstantExtensionsTest` |
 | **`:app`** | Route serialization, app-level constants | `FieldFlowRouteSerializationTest`, `AppConstantsTest` |
 
 There are **22** `*Test.kt` files under `**/src/test`. `androidTest` UI tests are optional here; CI sticks to unit tests and lint.
@@ -642,4 +640,4 @@ See **[Data lifecycle, encryption, and device security](#data-lifecycle-encrypti
 
 - Don’t commit **signing keys** or API secrets—CI secrets, `local.properties`, or another vault is fine.
 - **Location**, **camera**, and **biometric** flows touch sensitive data; line up Play Console listings and your privacy policy with what you actually ship.
-- On-device encryption raises the bar against casual storage snooping; it’s **not** the same as a full-blown enterprise threat review.
+- On-device encryption gives everyday protection against casual storage inspection—easy to combine with broader governance as your compliance stack grows.

@@ -34,6 +34,16 @@ A multi-module Android app built with **Kotlin** and **Jetpack Compose** for fie
 
 ---
 
+## Screen recording
+
+https://github.com/user-attachments/assets/6b68f554-2015-4d10-a716-1f478e0d9088
+
+https://github.com/user-attachments/assets/006d0a37-e08b-4424-a462-d6e7c81dac6d
+
+https://github.com/user-attachments/assets/32b2ba24-16ed-467a-9d29-4d54e52cea31
+
+---
+
 ## Project structure (modules)
 
 | Module | Type | Role |

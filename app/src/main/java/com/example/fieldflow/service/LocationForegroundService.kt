@@ -1,14 +1,11 @@
 package com.example.fieldflow.service
 
-import android.Manifest
 import android.app.Service
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
 import android.os.IBinder
 import android.os.Looper
-import androidx.core.content.ContextCompat
 import com.example.domain.model.EventRecord
 import com.example.domain.model.GeofenceEvent
 import com.example.domain.model.LocationRecord
@@ -23,6 +20,7 @@ import com.example.fieldflow.constants.BATTERY_LOW_THRESHOLD
 import com.example.fieldflow.constants.NOTIFICATION_ID_TRACKING
 import com.example.fieldflow.notification.NotificationHelper
 import com.example.fieldflow.sync.SyncWorker
+import com.example.utils.permissions.hasForegroundLocationPermission
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -168,11 +166,12 @@ internal class LocationForegroundService : Service() {
     }
 
     private fun startLocationUpdates(intervalMs: Long) {
-        val hasFineLocation = ContextCompat.checkSelfPermission(
-            this, Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        if (!hasFineLocation) { stopSelf(); return }
+        val hasForegroundLocation = hasForegroundLocationPermission()
+        if (!hasForegroundLocation) {
+            stopLocationUpdates()
+            stopSelf()
+            return
+        }
 
         val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, intervalMs)
             .setMinUpdateIntervalMillis(intervalMs / 2)
@@ -197,9 +196,14 @@ internal class LocationForegroundService : Service() {
             }
         }
 
-        fusedLocationClient.requestLocationUpdates(
-            request, locationCallback!!, Looper.getMainLooper()
-        )
+        try {
+            fusedLocationClient.requestLocationUpdates(
+                request, locationCallback!!, Looper.getMainLooper()
+            )
+        } catch (_: SecurityException) {
+            stopLocationUpdates()
+            stopSelf()
+        }
     }
 
     private suspend fun checkGeofences(location: Location) {

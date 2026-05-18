@@ -28,15 +28,17 @@ internal class MainNavRouter(
     }
 
     fun onActivationCodeSuccess() {
-        setBiometricVerified(true)
-        scope.launch { activationStore.setActivated(true) }
-        Toast.makeText(
-            activity,
-            activity.getString(R.string.activation_success),
-            Toast.LENGTH_LONG
-        ).show()
-        backStack.clear()
-        backStack.add(HomeRoute)
+        scope.launch {
+            activationStore.setActivated(true)
+            setBiometricVerified(false)
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.activation_success),
+                Toast.LENGTH_LONG,
+            ).show()
+            backStack.clear()
+            backStack.add(BiometricRoute)
+        }
     }
 
     fun onBiometricAuthenticated() {

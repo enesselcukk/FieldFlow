@@ -10,6 +10,7 @@ import com.example.domain.model.AppTheme
 import com.example.domain.model.UserPreferences
 import com.example.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import com.example.utils.settings.SettingsBootstrapPreferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -43,13 +44,16 @@ internal class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setLanguage(language: AppLanguage) {
         context.settingsDataStore.edit { it[languageKey] = language.code }
+        SettingsBootstrapPreferences.writeLanguageCodeSync(context, language.code)
     }
 
     override suspend fun setTheme(theme: AppTheme) {
         context.settingsDataStore.edit { it[themeKey] = theme.name }
+        SettingsBootstrapPreferences.writeThemeNameSync(context, theme.name)
     }
 
     override suspend fun setLocationInterval(seconds: Int) {
         context.settingsDataStore.edit { it[intervalKey] = seconds }
+        SettingsBootstrapPreferences.writeLocationIntervalSync(context, seconds)
     }
 }

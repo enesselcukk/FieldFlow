@@ -20,14 +20,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.NotificationsOff
-import androidx.compose.material.icons.filled.SignalWifiOff
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -45,17 +40,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.domain.constants.NOTIF_TYPE_BATTERY
-import com.example.domain.constants.NOTIF_TYPE_GEOFENCE
-import com.example.domain.constants.NOTIF_TYPE_INTERNET
-import com.example.domain.constants.NOTIF_TYPE_LOCATION
 import com.example.domain.model.NotificationRecord
 import com.example.presentation.R
 import com.example.utils.extensions.toDateTimeShort
@@ -194,9 +183,10 @@ private fun NotificationItem(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val (icon, tint) = notificationIconAndTint(record.type)
-    val title = notificationTitle(record.type)
-    val subtitle = notificationSubtitle(record.type, record.extraArg)
+    val kind = NotificationTypeKind.from(record.type)
+    val (icon, tint) = notificationListIconAndTint(kind)
+    val title = notificationTitleForKind(kind)
+    val subtitle = notificationBodyForKind(kind, record.extraArg)
     val timeFormatted = record.timestamp.toDateTimeShort()
 
     Card(
@@ -300,34 +290,3 @@ private fun EmptyNotificationsState() {
     }
 }
 
-@Composable
-private fun notificationIconAndTint(type: String): Pair<ImageVector, Color> {
-    val errorColor = MaterialTheme.colorScheme.error
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val warningColor = MaterialTheme.colorScheme.tertiary
-    return when (type) {
-        NOTIF_TYPE_GEOFENCE -> Icons.Default.Warning to errorColor
-        NOTIF_TYPE_INTERNET -> Icons.Default.SignalWifiOff to primaryColor
-        NOTIF_TYPE_LOCATION -> Icons.Default.LocationOff to warningColor
-        NOTIF_TYPE_BATTERY -> Icons.Default.BatteryAlert to errorColor
-        else -> Icons.Default.Info to primaryColor
-    }
-}
-
-@Composable
-private fun notificationTitle(type: String): String = when (type) {
-    NOTIF_TYPE_GEOFENCE -> stringResource(R.string.notif_geofence_title)
-    NOTIF_TYPE_INTERNET -> stringResource(R.string.notif_internet_lost_title)
-    NOTIF_TYPE_LOCATION -> stringResource(R.string.notif_location_disabled_title)
-    NOTIF_TYPE_BATTERY -> stringResource(R.string.notif_battery_low_title)
-    else -> stringResource(R.string.notif_internet_lost_title)
-}
-
-@Composable
-private fun notificationSubtitle(type: String, extraArg: String?): String = when (type) {
-    NOTIF_TYPE_GEOFENCE -> stringResource(R.string.notif_geofence_detail, extraArg ?: "")
-    NOTIF_TYPE_INTERNET -> stringResource(R.string.notif_internet_lost_detail)
-    NOTIF_TYPE_LOCATION -> stringResource(R.string.notif_location_disabled_detail)
-    NOTIF_TYPE_BATTERY -> stringResource(R.string.notif_battery_low_detail, extraArg?.toIntOrNull() ?: 0)
-    else -> ""
-}

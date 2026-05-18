@@ -17,6 +17,7 @@ import com.example.fieldflow.navigation.MainNavigationHost
 import com.example.fieldflow.ui.theme.FieldFlowTheme
 import com.example.presentation.notification.NotificationListViewModel
 import com.example.presentation.settings.SettingsViewModel
+import com.example.utils.settings.SettingsBootstrapPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.Locale
 
@@ -31,22 +32,34 @@ internal fun FieldFlowApp(
 
     val notificationViewModel: NotificationListViewModel = hiltViewModel()
 
+    val bootstrapLanguageCode = SettingsBootstrapPreferences.readLanguageCode(activity)
+    val resolvedLanguage = SettingsBootstrapPreferences.resolveLanguage(
+        bootstrapLanguageCode,
+        prefs.language,
+    )
+
+    val bootstrapThemeName = SettingsBootstrapPreferences.readThemeName(activity)
+    val resolvedTheme = SettingsBootstrapPreferences.resolveTheme(
+        bootstrapThemeName,
+        prefs.theme,
+    )
+
     val systemInDarkTheme = isSystemInDarkTheme()
-    val isDarkTheme = when (prefs.theme) {
+    val isDarkTheme = when (resolvedTheme) {
         AppTheme.LIGHT -> false
         AppTheme.DARK -> true
         AppTheme.SYSTEM -> systemInDarkTheme
     }
 
     val baseConfiguration = LocalConfiguration.current
-    val localizedConfiguration = remember(baseConfiguration, prefs.language) {
+    val localizedConfiguration = remember(baseConfiguration, resolvedLanguage) {
         Configuration(baseConfiguration).apply {
-            setLocale(Locale.forLanguageTag(prefs.language.code))
+            setLocale(Locale.forLanguageTag(resolvedLanguage.code))
         }
     }
 
-    LaunchedEffect(prefs.language) {
-        val locale = Locale.forLanguageTag(prefs.language.code)
+    LaunchedEffect(resolvedLanguage) {
+        val locale = Locale.forLanguageTag(resolvedLanguage.code)
         Locale.setDefault(locale)
         @Suppress("DEPRECATION")
         activity.resources.updateConfiguration(
@@ -57,7 +70,7 @@ internal fun FieldFlowApp(
 
     FieldFlowTheme(
         darkTheme = isDarkTheme,
-        dynamicColor = prefs.theme == AppTheme.SYSTEM
+        dynamicColor = resolvedTheme == AppTheme.SYSTEM
     ) {
         CompositionLocalProvider(LocalConfiguration provides localizedConfiguration) {
             MainNavigationHost(

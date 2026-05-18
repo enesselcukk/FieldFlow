@@ -1,11 +1,6 @@
 package com.example.presentation.map
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.location.LocationManager
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,14 +53,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.GeofenceEvent
 import com.example.domain.model.GeofenceZone
 import com.example.presentation.R
 import com.example.presentation.constants.MAPS_SHEET_PEEK_HEIGHT
 import com.example.presentation.constants.MAP_TRACK_LINE_WIDTH_DP
+import com.example.presentation.permissions.rememberRuntimePermissionRequestHandles
+import com.example.utils.permissions.hasForegroundLocationPermission
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
@@ -88,45 +87,37 @@ fun MapScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val showDialog by viewModel.showAddZoneDialog.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     var hasLocationPermission by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(
-                context, Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        )
-    }
-    var hasBackgroundPermission by remember {
-        mutableStateOf(
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-                ContextCompat.checkSelfPermission(
-                    context, Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED
-            else true
-        )
+        mutableStateOf(context.hasForegroundLocationPermission())
     }
 
-    val backgroundPermLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted -> hasBackgroundPermission = granted }
+    val permissionHandles = rememberRuntimePermissionRequestHandles(
+        onPermissionsSnapshotInvalidated = {
+            hasLocationPermission = context.hasForegroundLocationPermission()
+        },
+    )
 
-    val locationPermLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        hasLocationPermission = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
-        if (hasLocationPermission && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !hasBackgroundPermission) {
-            backgroundPermLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                hasLocationPermission = context.hasForegroundLocationPermission()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    LaunchedEffect(hasLocationPermission) {
+        if (!hasLocationPermission) {
+            viewModel.onForegroundLocationAccessChanged(false)
         }
     }
 
     LaunchedEffect(Unit) {
         if (!hasLocationPermission) {
-            locationPermLauncher.launch(
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                )
-            )
+            permissionHandles.requestForegroundLocation()
         }
     }
 
@@ -176,14 +167,7 @@ fun MapScreen(
     } else {
         Box(modifier = Modifier.fillMaxSize()) {
             PermissionRequired(
-                onGrantClick = {
-                    locationPermLauncher.launch(
-                        arrayOf(
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION
-                        )
-                    )
-                }
+                onGrantClick = permissionHandles.requestForegroundLocation,
             )
         }
     }
@@ -223,6 +207,7 @@ private fun OsmMapView(
     DisposableEffect(Unit) { onDispose { mapView.value?.onDetach() } }
 
     LaunchedEffect(Unit) {
+        if (!context.hasForegroundLocationPermission()) return@LaunchedEffect
         if (currentLocation == null) {
             try {
                 val lm = context.getSystemService(LocationManager::class.java)

@@ -1,92 +1,73 @@
 package com.example.presentation.home
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.model.RuntimePermissions
 import com.example.domain.repository.StatusRepository
 import com.example.domain.repository.TrackingRepository
-import com.example.domain.usecase.tracking.StartTrackingUseCase
-import com.example.domain.usecase.tracking.StopTrackingUseCase
+import com.example.presentation.home.model.HomeUiState
+import com.example.utils.permissions.snapshotRuntimePermissions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val statusRepository: StatusRepository,
     private val trackingRepository: TrackingRepository,
-    @param:ApplicationContext private val context: Context
+    @ApplicationContext context: Context,
 ) : ViewModel() {
 
-    private val _runtimePermissions = MutableStateFlow(buildRuntimePermissions())
+    private val appContext = context.applicationContext
+    private val bootstrapPermissions = appContext.snapshotRuntimePermissions()
+    private val runtimePermissionsFlow = MutableStateFlow(bootstrapPermissions)
 
     val uiState: StateFlow<HomeUiState> = combine(
         statusRepository.observeConnectivity(),
         statusRepository.observeLocationEnabled(),
         statusRepository.observeBatteryLevel(),
-        _runtimePermissions,
-        trackingRepository.isTracking
+        runtimePermissionsFlow,
+        trackingRepository.isTracking,
     ) { isOnline, isLocationEnabled, batteryLevel, runtimePerms, isTracking ->
         HomeUiState(
             isOnline = isOnline,
             isLocationEnabled = isLocationEnabled,
             hasNotificationPermission = runtimePerms.hasNotificationPermission,
-            hasFineLocationPermission = runtimePerms.hasFineLocationPermission,
+            hasForegroundLocationPermission = runtimePerms.hasForegroundLocationPermission,
             hasBackgroundLocationPermission = runtimePerms.hasBackgroundLocationPermission,
             batteryLevel = batteryLevel,
-            isTracking = isTracking
+            isTracking = isTracking,
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = _runtimePermissions.value.let { perms ->
-            HomeUiState(
-                hasNotificationPermission = perms.hasNotificationPermission,
-                hasFineLocationPermission = perms.hasFineLocationPermission,
-                hasBackgroundLocationPermission = perms.hasBackgroundLocationPermission
-            )
-        }
+        initialValue = bootstrapPermissions.toPartialHomeUiState(),
     )
 
-    fun toggleTracking() = trackingRepository.toggleTracking()
-
-    fun refreshRuntimePermissions() {
-        _runtimePermissions.update { buildRuntimePermissions() }
+    fun toggleTracking() {
+        trackingRepository.toggleTracking()
     }
 
-    private fun buildRuntimePermissions() = RuntimePermissions(
-        hasNotificationPermission = checkNotificationPermission(),
-        hasFineLocationPermission = checkFineLocationPermission(),
-        hasBackgroundLocationPermission = checkBackgroundLocationPermission()
+    fun onForegroundLocationAccessChanged(granted: Boolean) {
+        if (!granted && trackingRepository.isTracking.value) {
+            trackingRepository.stopTracking()
+        }
+    }
+
+    fun refreshRuntimePermissions() {
+        runtimePermissionsFlow.update { appContext.snapshotRuntimePermissions() }
+    }
+
+    private fun RuntimePermissions.toPartialHomeUiState() = HomeUiState(
+        hasNotificationPermission = hasNotificationPermission,
+        hasForegroundLocationPermission = hasForegroundLocationPermission,
+        hasBackgroundLocationPermission = hasBackgroundLocationPermission,
     )
-
-    private fun checkNotificationPermission(): Boolean =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(
-                context, Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-        } else true
-
-    private fun checkFineLocationPermission(): Boolean =
-        ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-    private fun checkBackgroundLocationPermission(): Boolean =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ContextCompat.checkSelfPermission(
-                context, Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        } else true
 }

@@ -1,8 +1,6 @@
 package com.example.presentation.auth.idscan
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -76,6 +74,8 @@ import com.example.domain.model.IdentityInfo
 import com.example.presentation.R
 import com.example.presentation.constants.IdScanPhase
 import com.example.presentation.constants.IdScanTag
+import com.example.utils.permissions.AppRuntimePermissions
+import com.example.utils.permissions.hasCameraPermission
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -119,12 +119,7 @@ fun IdScanScreen(
     }
 
     var hasCameraPermission by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.CAMERA,
-            ) == PackageManager.PERMISSION_GRANTED,
-        )
+        mutableStateOf(context.hasCameraPermission())
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -135,7 +130,7 @@ fun IdScanScreen(
 
     LaunchedEffect(Unit) {
         if (!hasCameraPermission) {
-            permissionLauncher.launch(Manifest.permission.CAMERA)
+            permissionLauncher.launch(AppRuntimePermissions.camera)
         }
     }
 
@@ -183,7 +178,7 @@ fun IdScanScreen(
                 hasCameraPermission = hasCameraPermission,
                 previewView = previewView,
                 uiState = uiState,
-                onRequestPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+                onRequestPermission = { permissionLauncher.launch(AppRuntimePermissions.camera) },
                 onEnterManually = {
                     viewModel.clearDetectedIdentity()
                     phase = IdScanPhase.ConfirmDetails

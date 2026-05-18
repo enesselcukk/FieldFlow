@@ -1,10 +1,10 @@
-package com.example.presentation.home
+package com.example.presentation.home.model
 
 data class HomeUiState(
     val isOnline: Boolean = false,
     val isLocationEnabled: Boolean = false,
     val hasNotificationPermission: Boolean = false,
-    val hasFineLocationPermission: Boolean = false,
+    val hasForegroundLocationPermission: Boolean = false,
     val hasBackgroundLocationPermission: Boolean = false,
     val batteryLevel: Int = -1,
     val isTracking: Boolean = false,

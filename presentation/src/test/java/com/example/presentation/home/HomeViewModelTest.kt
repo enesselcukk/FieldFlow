@@ -52,7 +52,7 @@ class HomeViewModelTest {
             val vm = HomeViewModel(status, MutableTrackingRepository(), ctx)
             tapState(vm.uiState)
             advanceUntilIdle()
-            assertTrue(vm.uiState.value.hasFineLocationPermission)
+            assertTrue(vm.uiState.value.hasForegroundLocationPermission)
             assertEquals(55, vm.uiState.value.batteryLevel)
         }
 

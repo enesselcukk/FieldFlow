@@ -21,8 +21,8 @@ class SettingsViewModel @Inject constructor(
     val preferences: StateFlow<UserPreferences> = settingsRepository.preferences
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = UserPreferences()
+            started = SharingStarted.Eagerly,
+            initialValue = UserPreferences(),
         )
 
     fun setLanguage(language: AppLanguage) {

@@ -35,6 +35,15 @@
     <string name="biometric_failed">Biometric verification failed.</string>
     <string name="biometric_error_lockout">Too many attempts. Wait a moment, then try again—or use your device screen lock.</string>
     <string name="biometric_error_timeout">Authentication timed out. Please try again.</string>
+    <string name="biometric_open_enrollment_settings">Open biometric settings</string>
+    <string name="biometric_use_screen_lock">Continue with screen lock</string>
+    <string name="biometric_open_security_settings">Open security settings</string>
+    <string name="biometric_try_again">Try again</string>
+    <string name="biometric_device_credential_only_description">This device does not offer biometric unlock. Continue with your device PIN, pattern, or password.</string>
+    <string name="biometric_needs_enrollment_description">No fingerprint or face is set up on this device. Add biometrics in settings, or continue with your screen lock.</string>
+    <string name="biometric_hw_unavailable_description">Biometric hardware is temporarily unavailable. Try again in a moment, or use your screen lock.</string>
+    <string name="biometric_setup_security_description">Set a screen lock or biometric on this device in system settings, then return to the app.</string>
+    <string name="biometric_prompt_device_credential_subtitle">Enter your device PIN, pattern, or password</string>
 
     <string name="status_internet_title">Internet Connection</string>
     <string name="status_internet_online">Online</string>

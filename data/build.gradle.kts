@@ -40,6 +40,7 @@ android {
 
 dependencies {
     implementation(project(":domain"))
+    implementation(project(":utils"))
 
     // Core
     implementation(libs.androidx.core.ktx)

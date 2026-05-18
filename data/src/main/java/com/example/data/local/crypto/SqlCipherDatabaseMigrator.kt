@@ -12,6 +12,16 @@ internal object SqlCipherDatabaseMigrator {
     private const val DB_NAME = "fieldflow.db"
     private const val BACKUP_SUFFIX = ".migrate_plain_backup"
 
+    fun wipeRoomDatabase(context: Context) {
+        context.deleteDatabase(DB_NAME)
+        val stale = File(context.getDatabasePath(DB_NAME).parentFile ?: return, "$DB_NAME$BACKUP_SUFFIX")
+        deleteQuietly(stale)
+        deleteWalArtifacts(stale)
+        val base = context.getDatabasePath(DB_NAME)
+        deleteWalArtifacts(base)
+        deleteQuietly(base)
+    }
+
     fun migratePlainDatabaseIfNeeded(context: Context, passphrase: String) {
         SQLiteDatabase.loadLibs(context)
         val dbFile = context.getDatabasePath(DB_NAME)

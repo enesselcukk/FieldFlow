@@ -8,15 +8,26 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.example.domain.repository.SettingsRepository
 import com.example.fieldflow.sync.SyncWorker
+import com.example.utils.settings.SettingsBootstrapPreferences
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration as OsmdroidConfiguration
 import javax.inject.Inject
 
 @HiltAndroidApp
 internal class FieldFlowApplication : Application(), Configuration.Provider {
 
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     @Inject lateinit var workerFactory: HiltWorkerFactory
+
+    @Inject lateinit var settingsRepository: SettingsRepository
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
@@ -42,6 +53,15 @@ internal class FieldFlowApplication : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        applicationScope.launch {
+            runCatching {
+                val prefs = settingsRepository.preferences.first()
+                SettingsBootstrapPreferences.writeAllSync(
+                    this@FieldFlowApplication,
+                    prefs,
+                )
+            }
+        }
         OsmdroidConfiguration.getInstance().apply {
             userAgentValue = packageName
             osmdroidTileCache = cacheDir

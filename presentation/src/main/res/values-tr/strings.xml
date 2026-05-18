@@ -36,6 +36,15 @@
     <string name="biometric_failed">Biyometrik doğrulama başarısız.</string>
     <string name="biometric_error_lockout">Çok fazla deneme yapıldı. Kısa bir süre sonra tekrar deneyin veya cihaz ekran kilidinizi kullanın.</string>
     <string name="biometric_error_timeout">Kimlik doğrulama zaman aşımına uğradı. Lütfen tekrar deneyin.</string>
+    <string name="biometric_open_enrollment_settings">Biyometrik ayarlarını aç</string>
+    <string name="biometric_use_screen_lock">Ekran kilidiyle devam et</string>
+    <string name="biometric_open_security_settings">Güvenlik ayarlarını aç</string>
+    <string name="biometric_try_again">Tekrar dene</string>
+    <string name="biometric_device_credential_only_description">Bu cihazda biyometrik kilit yok. Cihaz PIN\'i, desen veya şifrenizle devam edin.</string>
+    <string name="biometric_needs_enrollment_description">Bu cihazda parmak izi veya yüz tanıma kaydı yok. Ayarlardan ekleyin veya ekran kilidinizle devam edin.</string>
+    <string name="biometric_hw_unavailable_description">Biyometrik donanım geçici olarak kullanılamıyor. Bir süre sonra tekrar deneyin veya ekran kilidinizi kullanın.</string>
+    <string name="biometric_setup_security_description">Cihazınızda ekran kilidi veya biyometrik tanımlayın, ardından uygulamaya dönün.</string>
+    <string name="biometric_prompt_device_credential_subtitle">Cihaz PIN\'i, desen veya şifrenizi girin</string>
 
     <string name="status_internet_title">İnternet Bağlantısı</string>
     <string name="status_internet_online">Çevrimiçi</string>

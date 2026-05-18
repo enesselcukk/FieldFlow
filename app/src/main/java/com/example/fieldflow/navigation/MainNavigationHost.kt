@@ -76,22 +76,30 @@ internal fun MainNavigationHost(
     var rootSecurityAcknowledged by rememberSaveable { mutableStateOf(false) }
     val showRootSecurityDialog = deviceCompromised && !rootSecurityAcknowledged
 
-    LaunchedEffect(backStack) {
+    LaunchedEffect(Unit) {
         combine(
             activationStore.isActivated,
             snapshotFlow { isBiometricVerified }
         ) { activated, biometricOk -> activated to biometricOk }
             .collect { (activated, biometricOk) ->
+                val top = backStack.lastOrNull()
                 when {
-                    activated && biometricOk && backStack.lastOrNull() != HomeRoute -> {
-                        backStack.clear()
-                        backStack.add(HomeRoute)
+                    activated && biometricOk -> {
+                        val leaveOnboardingForHome = when (top) {
+                            SplashRoute, ScanRoute, BiometricRoute -> true
+                            is ActivationRoute -> true
+                            else -> false
+                        }
+                        if (leaveOnboardingForHome) {
+                            backStack.clear()
+                            backStack.add(HomeRoute)
+                        }
                     }
-                    activated && !biometricOk && backStack.lastOrNull() != BiometricRoute -> {
+                    activated && !biometricOk && top != BiometricRoute -> {
                         backStack.clear()
                         backStack.add(BiometricRoute)
                     }
-                    !activated && backStack.lastOrNull() == SplashRoute -> {
+                    !activated && top == SplashRoute -> {
                         backStack.clear()
                         backStack.add(ScanRoute)
                     }

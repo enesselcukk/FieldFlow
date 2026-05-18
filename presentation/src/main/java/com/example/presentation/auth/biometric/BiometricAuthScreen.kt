@@ -1,171 +1,62 @@
 package com.example.presentation.auth.biometric
 
-import android.Manifest
-import android.content.Context
-import android.hardware.biometrics.BiometricPrompt
-import android.util.Log
-import android.os.Build
-import android.os.CancellationSignal
-import androidx.annotation.RequiresPermission
-import androidx.biometric.BiometricManager
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import com.example.presentation.R
-import com.example.utils.extensions.findActivity
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import com.example.presentation.auth.biometric.ui.BiometricAuthContent
 
-private const val BiometricAuthTag = "BiometricAuth"
-
-@RequiresPermission(Manifest.permission.USE_BIOMETRIC)
 @Composable
 fun BiometricAuthScreen(
-    onAuthenticated: () -> Unit
+    onAuthenticated: () -> Unit,
+    viewModel: BiometricViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var refreshNonce by remember { mutableIntStateOf(0) }
+    val gateState by viewModel.gateState.collectAsStateWithLifecycle()
+    val promptError by viewModel.promptError.collectAsStateWithLifecycle()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = stringResource(R.string.biometric_title),
-            style = MaterialTheme.typography.headlineSmall
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text = stringResource(R.string.biometric_description))
-
-        if (!errorMessage.isNullOrBlank()) {
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = errorMessage.orEmpty(),
-                color = MaterialTheme.colorScheme.error
-            )
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-        Button(
-            onClick = {
-                errorMessage = null
-                authenticateWithBiometric(
-                    context = context,
-                    onSuccess = onAuthenticated,
-                    onError = { errorMessage = it.takeUnless { msg -> msg.isBlank() } }
-                )
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = stringResource(R.string.biometric_button))
+    val keyguardLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            onAuthenticated()
         }
     }
-}
 
-@RequiresPermission(Manifest.permission.USE_BIOMETRIC)
-private fun authenticateWithBiometric(
-    context: Context,
-    onSuccess: () -> Unit,
-    onError: (String) -> Unit
-) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-        onError(context.getString(R.string.biometric_unavailable))
-        return
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                refreshNonce++
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    val activity = context.findActivity()
-        ?: run {
-            onError(context.getString(R.string.biometric_unavailable))
-            return
-        }
-
-    val manager = BiometricManager.from(activity)
-    when (val status = manager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)) {
-        BiometricManager.BIOMETRIC_SUCCESS -> {
-            val executor = ContextCompat.getMainExecutor(context)
-            val prompt = BiometricPrompt.Builder(activity)
-                .setTitle(context.getString(R.string.biometric_prompt_title))
-                .setSubtitle(context.getString(R.string.biometric_prompt_subtitle))
-                .setNegativeButton(
-                    context.getString(R.string.biometric_prompt_cancel),
-                    executor
-                ) { _, _ ->
-                    onError("")
-                }
-                .build()
-
-            prompt.authenticate(
-                CancellationSignal(),
-                executor,
-                object : BiometricPrompt.AuthenticationCallback() {
-                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult?) {
-                        onSuccess()
-                    }
-
-                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence?) {
-                        Log.w(
-                            BiometricAuthTag,
-                            "Prompt error code=$errorCode detail=$errString",
-                        )
-                        onError(messageForPromptAuthenticationError(context, errorCode))
-                    }
-
-                    override fun onAuthenticationFailed() {
-                        onError(context.getString(R.string.biometric_failed))
-                    }
-                }
-            )
-        }
-
-        BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> onError(context.getString(R.string.biometric_no_hardware))
-        BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> onError(context.getString(R.string.biometric_unavailable))
-        BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> onError(context.getString(R.string.biometric_not_enrolled))
-        else -> {
-            Log.w(BiometricAuthTag, "BiometricManager.canAuthenticate status=$status")
-            onError(context.getString(R.string.biometric_unavailable))
-        }
+    LaunchedEffect(context, refreshNonce) {
+        viewModel.refreshGate(context)
     }
-}
 
-@Suppress("MagicNumber")
-private fun messageForPromptAuthenticationError(context: Context, errorCode: Int): String {
-    return when (errorCode) {
-        BiometricPrompt.BIOMETRIC_ERROR_CANCELED,
-        BiometricPrompt.BIOMETRIC_ERROR_USER_CANCELED,
-        13,
-        -> ""
-        BiometricPrompt.BIOMETRIC_ERROR_LOCKOUT,
-        BiometricPrompt.BIOMETRIC_ERROR_LOCKOUT_PERMANENT,
-        -> context.getString(R.string.biometric_error_lockout)
-        BiometricPrompt.BIOMETRIC_ERROR_TIMEOUT -> context.getString(R.string.biometric_error_timeout)
-        BiometricPrompt.BIOMETRIC_ERROR_NO_BIOMETRICS -> context.getString(R.string.biometric_not_enrolled)
-        BiometricPrompt.BIOMETRIC_ERROR_HW_UNAVAILABLE,
-        BiometricPrompt.BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
-        BiometricPrompt.BIOMETRIC_ERROR_NO_SPACE,
-        BiometricPrompt.BIOMETRIC_ERROR_HW_NOT_PRESENT,
-        BiometricPrompt.BIOMETRIC_ERROR_VENDOR,
-        BiometricPrompt.BIOMETRIC_ERROR_NO_DEVICE_CREDENTIAL,
-        BiometricPrompt.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED,
-        -> context.getString(R.string.biometric_unavailable)
-        else -> context.getString(R.string.biometric_unavailable)
-    }
+    BiometricAuthContent(
+        gateState = gateState,
+        promptError = promptError,
+        onPromptErrorChange = viewModel::setPromptError,
+        onRefreshGate = { refreshNonce++ },
+        onAuthenticated = onAuthenticated,
+        keyguardLauncher = keyguardLauncher,
+    )
 }

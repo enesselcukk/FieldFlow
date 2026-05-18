@@ -70,6 +70,12 @@ class MapViewModel @Inject constructor(
 
     fun toggleTracking() = trackingRepository.toggleTracking()
 
+    fun onForegroundLocationAccessChanged(granted: Boolean) {
+        if (!granted && trackingRepository.isTracking.value) {
+            trackingRepository.stopTracking()
+        }
+    }
+
     fun startPlayback() {
         playbackJob?.cancel()
         val totalPoints = uiState.value.totalTrackCount

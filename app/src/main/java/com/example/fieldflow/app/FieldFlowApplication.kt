@@ -35,7 +35,7 @@ internal class FieldFlowApplication : Application(), Configuration.Provider {
             .build()
 
     private val connectivityManager: ConnectivityManager by lazy {
-        getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
     }
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {

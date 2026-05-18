@@ -93,7 +93,7 @@ internal class NotificationHelper @Inject constructor(
             .setContentTitle(context.getString(R.string.notif_tracking_title))
             .setContentText(context.getString(R.string.notif_tracking_text))
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
-            .setContentIntent(launchAppIntent(RC_TRACKING))
+            .setContentIntent(launchAppIntent())
             .setOngoing(true)
             .setSilent(true)
             .build()
@@ -214,12 +214,12 @@ internal class NotificationHelper @Inject constructor(
         )
     }
 
-    private fun launchAppIntent(requestCode: Int): PendingIntent {
+    private fun launchAppIntent(): PendingIntent {
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
         return PendingIntent.getActivity(
-            context, requestCode, intent,
+            context, RC_TRACKING, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
     }

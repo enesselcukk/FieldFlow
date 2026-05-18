@@ -56,11 +56,32 @@ internal class MainNavRouter(
     }
 
     fun navigateToNotificationList() {
-        backStack.add(NotificationListRoute)
+        popWhileTopIsNotificationDetail()
+        when (backStack.lastOrNull()) {
+            is NotificationListRoute -> Unit
+            is SettingsRoute -> replaceTopWith(NotificationListRoute)
+            else -> backStack.add(NotificationListRoute)
+        }
     }
 
     fun navigateToSettings() {
-        backStack.add(SettingsRoute)
+        popWhileTopIsNotificationDetail()
+        when (backStack.lastOrNull()) {
+            is SettingsRoute -> Unit
+            is NotificationListRoute -> replaceTopWith(SettingsRoute)
+            else -> backStack.add(SettingsRoute)
+        }
+    }
+
+    private fun popWhileTopIsNotificationDetail() {
+        while (backStack.lastOrNull() is NotificationDetailRoute) {
+            backStack.removeLastOrNull()
+        }
+    }
+
+    private fun replaceTopWith(route: NavKey) {
+        backStack.removeLastOrNull()
+        backStack.add(route)
     }
 
     fun openNotificationDetail(record: NotificationRecord) {

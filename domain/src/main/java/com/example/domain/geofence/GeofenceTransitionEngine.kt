@@ -1,6 +1,8 @@
 package com.example.domain.geofence
 
 import com.example.domain.model.GeofenceEvent
+import com.example.domain.model.GeofenceTickResult
+import com.example.domain.model.GeofenceTransition
 import com.example.domain.model.GeofenceZone
 import com.example.domain.model.ZoneGeofenceRuntimeState
 import javax.inject.Inject
@@ -10,21 +12,6 @@ import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-data class GeofenceTickResult(
-    val states: Map<Long, ZoneGeofenceRuntimeState>,
-    val transitions: List<GeofenceTransition>,
-)
-
-data class GeofenceTransition(
-    val zoneId: Long,
-    val zoneName: String,
-    val type: GeofenceEvent.EventType,
-)
-
-/**
- * Pure hysteresis / debounce logic for circular zones (WGS84 distance).
- * Android's [android.location.Location.distanceBetween] equivalent for testability without the framework.
- */
 class GeofenceTransitionEngine @Inject constructor() {
 
     fun evaluate(

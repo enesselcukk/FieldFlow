@@ -6,14 +6,25 @@ import java.io.File
 class RootDetector internal constructor(
     private val fileExists: (String) -> Boolean = { File(it).exists() },
     private val buildTags: String = Build.TAGS,
+    private val buildType: String = Build.TYPE,
+    private val debuggableProperty: () -> String? = { readRoDebuggable() },
 ) {
 
     fun isDeviceCompromised(): Boolean =
-        hasTestKeys() || hasSuOrMagiskArtifacts()
+        hasTestKeys() ||
+            isNonRetailBuildType() ||
+            isRoDebuggable() ||
+            hasSuOrMagiskArtifacts()
 
     private fun hasTestKeys(): Boolean = buildTags.contains("test-keys")
 
-    private fun hasSuOrMagiskArtifacts(): Boolean = CompromiseIndicatorPaths.any { fileExists(it) }
+    private fun isNonRetailBuildType(): Boolean =
+        buildType == "eng" || buildType == "userdebug"
+
+    private fun isRoDebuggable(): Boolean = debuggableProperty()?.trim() == "1"
+
+    private fun hasSuOrMagiskArtifacts(): Boolean =
+        CompromiseIndicatorPaths.any { fileExists(it) }
 
     companion object {
         internal val CompromiseIndicatorPaths = listOf(
@@ -34,3 +45,18 @@ class RootDetector internal constructor(
         fun isDeviceCompromised(): Boolean = RootDetector().isDeviceCompromised()
     }
 }
+
+private fun readRoDebuggable(): String? =
+    try {
+        val clazz = Class.forName("android.os.SystemProperties")
+        val raw = try {
+            clazz.getMethod("get", String::class.java, String::class.java)
+                .invoke(null, "ro.debuggable", "") as? String
+        } catch (_: ReflectiveOperationException) {
+            clazz.getMethod("get", String::class.java)
+                .invoke(null, "ro.debuggable") as? String
+        }
+        raw?.trim()?.takeIf { it.isNotEmpty() }
+    } catch (_: Exception) {
+        null
+    }

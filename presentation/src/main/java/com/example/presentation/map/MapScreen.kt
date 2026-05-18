@@ -1,5 +1,6 @@
 package com.example.presentation.map
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -46,50 +47,59 @@ fun MapScreen(
     )
     val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = bottomSheetState)
 
-    if (locationState.hasForegroundLocation) {
-        BottomSheetScaffold(
-            scaffoldState = scaffoldState,
-            sheetPeekHeight = MAPS_SHEET_PEEK_HEIGHT.dp,
-            sheetSwipeEnabled = true,
-            sheetDragHandle = { BottomSheetDefaults.DragHandle() },
-            sheetContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            containerColor = MaterialTheme.colorScheme.surface,
-            content = {
+    val hasForegroundLocation = locationState.hasForegroundLocation
+    val mapPin = when {
+        uiState.isPlaybackRunning -> uiState.trackPoints.getOrNull(uiState.playbackIndex)
+        hasForegroundLocation -> uiState.currentLocation
+        else -> null
+    }
+    val allowAutomaticCameraMoves = hasForegroundLocation || uiState.isPlaybackRunning
+
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = MAPS_SHEET_PEEK_HEIGHT.dp,
+        sheetSwipeEnabled = true,
+        sheetDragHandle = { BottomSheetDefaults.DragHandle() },
+        sheetContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        containerColor = MaterialTheme.colorScheme.surface,
+        content = {
+            Box(modifier = Modifier.fillMaxSize()) {
                 OsmMapView(
                     modifier = Modifier.fillMaxSize(),
                     trackPoints = uiState.trackPoints,
-                    currentLocation = if (uiState.isPlaybackRunning) {
-                        uiState.trackPoints.getOrNull(uiState.playbackIndex)
-                    } else {
-                        uiState.currentLocation
-                    },
+                    currentLocation = mapPin,
                     geofenceZones = uiState.geofenceZones,
                     isPlaybackRunning = uiState.isPlaybackRunning,
+                    allowAutomaticCameraMoves = allowAutomaticCameraMoves,
                 )
-            },
-            sheetContent = {
-                MapControlsSheetContent(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp),
-                    isTracking = uiState.isTracking,
-                    isPlaybackRunning = uiState.isPlaybackRunning,
-                    hasTrackPoints = uiState.totalTrackCount >= 2,
-                    geofenceZones = uiState.geofenceZones,
-                    recentEvents = uiState.recentGeofenceEvents,
-                    onToggleTracking = viewModel::toggleTracking,
-                    onStartPlayback = { viewModel.startPlayback() },
-                    onStopPlayback = { viewModel.stopPlayback() },
-                    onAddZoneClick = { viewModel.onAddZoneClick() },
-                    onDeleteZone = viewModel::deleteZone,
-                )
-            },
-        )
-    } else {
-        Box(modifier = Modifier.fillMaxSize()) {
-            MapPermissionRequired(onGrantClick = locationState.requestForegroundLocation)
-        }
-    }
+                if (!hasForegroundLocation) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.52f)),
+                    )
+                    MapPermissionRequired(onGrantClick = locationState.requestForegroundLocation)
+                }
+            }
+        },
+        sheetContent = {
+            MapControlsSheetContent(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                isTracking = uiState.isTracking,
+                isPlaybackRunning = uiState.isPlaybackRunning,
+                hasTrackPoints = uiState.totalTrackCount >= 2,
+                geofenceZones = uiState.geofenceZones,
+                recentEvents = uiState.recentGeofenceEvents,
+                onToggleTracking = viewModel::toggleTracking,
+                onStartPlayback = { viewModel.startPlayback() },
+                onStopPlayback = { viewModel.stopPlayback() },
+                onAddZoneClick = { viewModel.onAddZoneClick() },
+                onDeleteZone = viewModel::deleteZone,
+            )
+        },
+    )
 
     if (showDialog) {
         AddZoneDialog(

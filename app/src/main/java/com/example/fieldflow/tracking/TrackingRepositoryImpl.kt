@@ -13,7 +13,7 @@ import javax.inject.Singleton
 
 @Singleton
 internal class TrackingRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : TrackingRepository {
 
     override val isTracking: StateFlow<Boolean> = LocationForegroundService.isRunningFlow

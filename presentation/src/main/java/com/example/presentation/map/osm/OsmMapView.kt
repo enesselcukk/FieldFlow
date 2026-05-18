@@ -30,6 +30,7 @@ fun OsmMapView(
     currentLocation: GeoPoint?,
     geofenceZones: List<GeofenceZone>,
     isPlaybackRunning: Boolean = false,
+    allowAutomaticCameraMoves: Boolean = true,
 ) {
     val trackLineColor = MaterialTheme.colorScheme.primary.toArgb()
     val geofenceFillColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f).toArgb()
@@ -44,43 +45,57 @@ fun OsmMapView(
     val mapView = remember { mutableStateOf<MapView?>(null) }
     val centeredOnce = remember { mutableStateOf(false) }
 
+    val lat = currentLocation?.latitude
+    val lng = currentLocation?.longitude
+
     DisposableEffect(Unit) { onDispose { mapView.value?.onDetach() } }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(allowAutomaticCameraMoves) {
+        if (!allowAutomaticCameraMoves) {
+            centeredOnce.value = false
+        }
+    }
+
+    LaunchedEffect(mapView.value, allowAutomaticCameraMoves, lat, lng) {
+        val mv = mapView.value ?: return@LaunchedEffect
+        if (!allowAutomaticCameraMoves) return@LaunchedEffect
         if (!context.hasForegroundLocationPermission()) return@LaunchedEffect
-        if (currentLocation == null) {
-            try {
-                val lm = context.getSystemService(LocationManager::class.java)
-                val providers = listOf(
-                    LocationManager.GPS_PROVIDER,
-                    LocationManager.NETWORK_PROVIDER,
-                    LocationManager.PASSIVE_PROVIDER,
-                )
-                val lastKnown = providers
-                    .mapNotNull { provider ->
-                        @Suppress("MissingPermission")
-                        runCatching { lm.getLastKnownLocation(provider) }.getOrNull()
-                    }.maxByOrNull { it.time }
+        if (lat != null || lng != null) return@LaunchedEffect
 
-                if (lastKnown != null && !centeredOnce.value) {
-                    val geoPoint = GeoPoint(lastKnown.latitude, lastKnown.longitude)
-                    mapView.value?.controller?.setCenter(geoPoint)
-                    centeredOnce.value = true
-                }
-            } catch (_: Exception) { }
-        }
+        try {
+            val lm = context.getSystemService(LocationManager::class.java)
+            val providers = listOf(
+                LocationManager.GPS_PROVIDER,
+                LocationManager.NETWORK_PROVIDER,
+                LocationManager.PASSIVE_PROVIDER,
+            )
+            val lastKnown = providers
+                .mapNotNull { provider ->
+                    @Suppress("MissingPermission")
+                    runCatching { lm.getLastKnownLocation(provider) }.getOrNull()
+                }.maxByOrNull { it.time }
+
+            if (lastKnown != null && !centeredOnce.value) {
+                val geoPoint = GeoPoint(lastKnown.latitude, lastKnown.longitude)
+                mv.controller.setCenter(geoPoint)
+                centeredOnce.value = true
+            }
+        } catch (_: Exception) { }
     }
 
-    LaunchedEffect(currentLocation) {
-        if (currentLocation != null && !centeredOnce.value) {
-            mapView.value?.controller?.setCenter(currentLocation)
+    LaunchedEffect(mapView.value, lat, lng, isPlaybackRunning, allowAutomaticCameraMoves) {
+        val mv = mapView.value ?: return@LaunchedEffect
+
+        if (isPlaybackRunning && lat != null && lng != null) {
+            mv.controller.animateTo(GeoPoint(lat, lng))
+            return@LaunchedEffect
+        }
+
+        if (!allowAutomaticCameraMoves) return@LaunchedEffect
+
+        if (lat != null && lng != null && !centeredOnce.value) {
+            mv.controller.setCenter(GeoPoint(lat, lng))
             centeredOnce.value = true
-        }
-    }
-
-    LaunchedEffect(currentLocation) {
-        if (isPlaybackRunning && currentLocation != null) {
-            mapView.value?.controller?.animateTo(currentLocation)
         }
     }
 

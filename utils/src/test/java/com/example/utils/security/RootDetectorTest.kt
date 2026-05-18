@@ -10,7 +10,9 @@ class RootDetectorTest {
     fun detectsTestKeysInBuildTags() {
         val detector = RootDetector(
             fileExists = { false },
-            buildTags = "release-keys,test-keys"
+            buildTags = "release-keys,test-keys",
+            buildType = "user",
+            debuggableProperty = { null }
         )
         assertTrue(detector.isDeviceCompromised())
     }
@@ -19,7 +21,31 @@ class RootDetectorTest {
     fun detectsSuBinaryPathPresent() {
         val detector = RootDetector(
             fileExists = { it == "/system/bin/su" },
-            buildTags = "release-keys"
+            buildTags = "release-keys",
+            buildType = "user",
+            debuggableProperty = { null }
+        )
+        assertTrue(detector.isDeviceCompromised())
+    }
+
+    @Test
+    fun detectsUserdebugBuildType() {
+        val detector = RootDetector(
+            fileExists = { false },
+            buildTags = "release-keys",
+            buildType = "userdebug",
+            debuggableProperty = { null }
+        )
+        assertTrue(detector.isDeviceCompromised())
+    }
+
+    @Test
+    fun detectsRoDebuggableWhenPropertyIsOne() {
+        val detector = RootDetector(
+            fileExists = { false },
+            buildTags = "release-keys",
+            buildType = "user",
+            debuggableProperty = { "1" }
         )
         assertTrue(detector.isDeviceCompromised())
     }
@@ -28,7 +54,9 @@ class RootDetectorTest {
     fun reportsSafeWhenClean() {
         val detector = RootDetector(
             fileExists = { false },
-            buildTags = "release-keys"
+            buildTags = "release-keys",
+            buildType = "user",
+            debuggableProperty = { "0" }
         )
         assertFalse(detector.isDeviceCompromised())
     }

@@ -73,7 +73,7 @@ internal fun notificationDetailFooterAction(kind: NotificationTypeKind): Notific
         NotificationTypeKind.Internet,
         NotificationTypeKind.Location,
         NotificationTypeKind.Battery,
-        -> NotificationDetailFooterAction.Home
+            -> NotificationDetailFooterAction.Home
 
         NotificationTypeKind.Unknown -> NotificationDetailFooterAction.None
     }

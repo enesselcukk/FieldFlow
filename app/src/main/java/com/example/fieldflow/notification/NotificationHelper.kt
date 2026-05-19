@@ -30,6 +30,7 @@ import com.example.fieldflow.constants.NOTIFICATION_ID_GEOFENCE_BASE
 import com.example.fieldflow.constants.NOTIFICATION_ID_INTERNET_LOST
 import com.example.fieldflow.constants.NOTIFICATION_ID_LOCATION_DISABLED
 import com.example.fieldflow.constants.RC_TRACKING
+import com.example.utils.permissions.canPostNotifications
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -99,6 +100,7 @@ internal class NotificationHelper @Inject constructor(
             .build()
 
     fun sendGeofenceExitAlert(zoneKey: Int, zoneName: String) {
+        if (!context.canPostNotifications()) return
         val now = System.currentTimeMillis()
         val notification = NotificationCompat.Builder(context, CHANNEL_GEOFENCE)
             .setContentTitle(context.getString(R.string.notif_geofence_title))
@@ -120,6 +122,7 @@ internal class NotificationHelper @Inject constructor(
     }
 
     fun sendInternetLostAlert() {
+        if (!context.canPostNotifications()) return
         val now = System.currentTimeMillis()
         val notification = NotificationCompat.Builder(context, CHANNEL_SYSTEM)
             .setContentTitle(context.getString(R.string.notif_internet_lost_title))
@@ -144,6 +147,7 @@ internal class NotificationHelper @Inject constructor(
     }
 
     fun sendLocationServiceDisabledAlert() {
+        if (!context.canPostNotifications()) return
         val now = System.currentTimeMillis()
         val notification = NotificationCompat.Builder(context, CHANNEL_SYSTEM)
             .setContentTitle(context.getString(R.string.notif_location_disabled_title))
@@ -168,6 +172,7 @@ internal class NotificationHelper @Inject constructor(
     }
 
     fun sendBatteryLowAlert(level: Int) {
+        if (!context.canPostNotifications()) return
         val now = System.currentTimeMillis()
         val priority = if (level <= BATTERY_CRITICAL_THRESHOLD)
             NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_DEFAULT

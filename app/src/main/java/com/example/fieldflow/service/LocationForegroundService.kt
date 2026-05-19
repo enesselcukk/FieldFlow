@@ -16,6 +16,8 @@ import com.example.domain.usecase.geofence.SaveGeofenceEventUseCase
 import com.example.domain.usecase.location.SaveLocationUseCase
 import com.example.fieldflow.constants.NOTIFICATION_ID_TRACKING
 import com.example.fieldflow.notification.NotificationHelper
+import com.example.utils.permissions.canPostNotifications
+import com.example.utils.permissions.hasForegroundLocationPermission
 import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -60,18 +62,27 @@ internal class LocationForegroundService : Service() {
             coroutineScope = serviceScope,
             onStartFailure = { stopSelf() },
         )
-        setRunning(true)
         deviceSignalsMonitor.start(serviceScope)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        notificationHelper.createChannels()
-        startForeground(
-            NOTIFICATION_ID_TRACKING,
-            notificationHelper.buildTrackingNotification(),
-        )
-        startObservingInterval()
-        return START_STICKY
+        if (!hasForegroundLocationPermission() || !canPostNotifications()) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
+        return try {
+            notificationHelper.createChannels()
+            startForeground(
+                NOTIFICATION_ID_TRACKING,
+                notificationHelper.buildTrackingNotification(),
+            )
+            setRunning(true)
+            startObservingInterval()
+            START_STICKY
+        } catch (_: SecurityException) {
+            stopSelf()
+            START_NOT_STICKY
+        }
     }
 
     private fun startObservingInterval() {

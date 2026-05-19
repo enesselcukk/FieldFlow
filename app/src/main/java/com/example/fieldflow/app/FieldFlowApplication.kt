@@ -18,6 +18,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration as OsmdroidConfiguration
+import java.io.File
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -64,7 +65,9 @@ internal class FieldFlowApplication : Application(), Configuration.Provider {
         }
         OsmdroidConfiguration.getInstance().apply {
             userAgentValue = packageName
-            osmdroidTileCache = cacheDir
+            val basePath = File(cacheDir, "osmdroid").apply { mkdirs() }
+            osmdroidBasePath = basePath
+            osmdroidTileCache = File(basePath, "tiles").apply { mkdirs() }
         }
         registerNetworkCallback()
         SyncWorker.schedule(this)

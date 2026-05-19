@@ -23,6 +23,7 @@ import com.example.presentation.home.dashboard.HomeDashboard
 import com.example.presentation.home.model.HomeUiState
 import com.example.presentation.permissions.rememberRuntimePermissionRequestHandles
 import com.example.utils.extensions.findActivity
+import com.example.utils.permissions.hasNotificationRuntimePermission
 import com.example.utils.permissions.snapshotRuntimePermissions
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -79,7 +80,7 @@ internal fun HomeRuntimePermissionHost(
                 val now = SystemClock.elapsedRealtime()
 
                 val notificationMissing =
-                    !snapshot.hasNotificationPermission &&
+                    !context.hasNotificationRuntimePermission() &&
                         Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
                 when {

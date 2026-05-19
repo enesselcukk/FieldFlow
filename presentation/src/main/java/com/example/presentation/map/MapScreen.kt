@@ -33,7 +33,9 @@ fun MapScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val showDialog by viewModel.showAddZoneDialog.collectAsStateWithLifecycle()
 
-    val locationState = rememberMapForegroundLocationState()
+    val locationState = rememberMapForegroundLocationState(
+        onForegroundLocationRevoked = { viewModel.onForegroundLocationAccessChanged(false) },
+    )
 
     LaunchedEffect(locationState.hasForegroundLocation) {
         if (!locationState.hasForegroundLocation) {

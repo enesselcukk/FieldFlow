@@ -13,10 +13,13 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.presentation.map.model.MapForegroundLocationState
 import com.example.presentation.permissions.rememberRuntimePermissionRequestHandles
+import com.example.utils.permissions.canPostNotifications
 import com.example.utils.permissions.hasForegroundLocationPermission
 
 @Composable
-fun rememberMapForegroundLocationState(): MapForegroundLocationState {
+fun rememberMapForegroundLocationState(
+    onForegroundLocationRevoked: () -> Unit = {},
+): MapForegroundLocationState {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -33,7 +36,13 @@ fun rememberMapForegroundLocationState(): MapForegroundLocationState {
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                hasLocationPermission = context.hasForegroundLocationPermission()
+                val granted = context.hasForegroundLocationPermission()
+                hasLocationPermission = granted
+                if (!granted) {
+                    onForegroundLocationRevoked()
+                } else if (!context.canPostNotifications()) {
+                    onForegroundLocationRevoked()
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

@@ -1,6 +1,7 @@
 package com.example.utils.permissions
 
 import android.Manifest
+import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -12,7 +13,7 @@ import com.example.utils.POST_NOTIFICATIONS
 
 fun Context.snapshotRuntimePermissions(): RuntimePermissions =
     RuntimePermissions(
-        hasNotificationPermission = this.hasNotificationRuntimePermission(),
+        hasNotificationPermission = this.canPostNotifications(),
         hasForegroundLocationPermission = this.hasForegroundLocationPermission(),
         hasBackgroundLocationPermission = this.hasBackgroundLocationRuntimePermission(),
     )
@@ -24,6 +25,14 @@ fun Context.hasNotificationRuntimePermission(): Boolean =
     } else {
         true
     }
+
+fun Context.areAppNotificationsEnabled(): Boolean {
+    val notificationManager = getSystemService(NotificationManager::class.java) ?: return false
+    return notificationManager.areNotificationsEnabled()
+}
+
+fun Context.canPostNotifications(): Boolean =
+    hasNotificationRuntimePermission() && areAppNotificationsEnabled()
 
 fun Context.hasForegroundLocationPermission(): Boolean {
     val fine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==

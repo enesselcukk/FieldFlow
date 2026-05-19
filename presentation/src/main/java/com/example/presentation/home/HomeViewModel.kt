@@ -7,6 +7,8 @@ import com.example.domain.model.RuntimePermissions
 import com.example.domain.repository.StatusRepository
 import com.example.domain.repository.TrackingRepository
 import com.example.presentation.home.model.HomeUiState
+import com.example.utils.permissions.canPostNotifications
+import com.example.utils.permissions.hasForegroundLocationPermission
 import com.example.utils.permissions.snapshotRuntimePermissions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -56,13 +58,23 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onForegroundLocationAccessChanged(granted: Boolean) {
-        if (!granted && trackingRepository.isTracking.value) {
-            trackingRepository.stopTracking()
+        if (!granted) {
+            stopTrackingIfRequiredPermissionsMissing()
         }
     }
 
     fun refreshRuntimePermissions() {
         runtimePermissionsFlow.update { appContext.snapshotRuntimePermissions() }
+        stopTrackingIfRequiredPermissionsMissing()
+    }
+
+    private fun stopTrackingIfRequiredPermissionsMissing() {
+        if (
+            trackingRepository.isTracking.value &&
+            (!appContext.canPostNotifications() || !appContext.hasForegroundLocationPermission())
+        ) {
+            trackingRepository.stopTracking()
+        }
     }
 
     private fun RuntimePermissions.toPartialHomeUiState() = HomeUiState(

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build
 import com.example.domain.repository.TrackingRepository
 import com.example.fieldflow.service.LocationForegroundService
+import com.example.utils.permissions.canPostNotifications
 import com.example.utils.permissions.hasForegroundLocationPermission
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +21,7 @@ internal class TrackingRepositoryImpl @Inject constructor(
 
     override fun startTracking() {
         if (isTracking.value) return
-        if (!context.hasForegroundLocationPermission()) return
+        if (!context.hasForegroundLocationPermission() || !context.canPostNotifications()) return
         val intent = Intent(context, LocationForegroundService::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(intent)

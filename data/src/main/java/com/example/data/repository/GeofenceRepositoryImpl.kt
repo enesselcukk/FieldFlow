@@ -2,8 +2,8 @@ package com.example.data.repository
 
 import com.example.data.local.dao.GeofenceEventDao
 import com.example.data.local.dao.GeofenceZoneDao
-import com.example.data.local.entity.GeofenceEventEntity
-import com.example.data.local.entity.GeofenceZoneEntity
+import com.example.data.mapper.toDomain
+import com.example.data.mapper.toEntity
 import com.example.domain.model.GeofenceEvent
 import com.example.domain.model.GeofenceZone
 import com.example.domain.repository.GeofenceRepository
@@ -35,27 +35,4 @@ internal class GeofenceRepositoryImpl @Inject constructor(
 
     override fun observeRecentEvents(limit: Int): Flow<List<GeofenceEvent>> =
         eventDao.observeRecent(limit).map { list -> list.map { it.toDomain() } }
-
-    private fun GeofenceZone.toEntity() = GeofenceZoneEntity(
-        id = id, name = name,
-        centerLat = centerLat, centerLng = centerLng,
-        radiusMeters = radiusMeters
-    )
-
-    private fun GeofenceZoneEntity.toDomain() = GeofenceZone(
-        id = id, name = name,
-        centerLat = centerLat, centerLng = centerLng,
-        radiusMeters = radiusMeters
-    )
-
-    private fun GeofenceEvent.toEntity() = GeofenceEventEntity(
-        id = id, zoneId = zoneId, zoneName = zoneName,
-        timestamp = timestamp, eventType = eventType.name
-    )
-
-    private fun GeofenceEventEntity.toDomain() = GeofenceEvent(
-        id = id, zoneId = zoneId, zoneName = zoneName,
-        timestamp = timestamp,
-        eventType = GeofenceEvent.EventType.valueOf(eventType)
-    )
 }

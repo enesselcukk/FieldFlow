@@ -1,7 +1,8 @@
 package com.example.data.repository
 
 import com.example.data.local.dao.LocationDao
-import com.example.data.local.entity.LocationEntity
+import com.example.data.mapper.toDomain
+import com.example.data.mapper.toEntity
 import com.example.domain.model.LocationRecord
 import com.example.domain.repository.LocationRepository
 import kotlinx.coroutines.flow.Flow
@@ -37,21 +38,4 @@ internal class LocationRepositoryImpl @Inject constructor(
     override suspend fun markLocationsSynced(ids: List<Long>, syncedAt: Long) {
         if (ids.isNotEmpty()) locationDao.markSynced(ids, syncedAt)
     }
-
-    private fun LocationRecord.toEntity() = LocationEntity(
-        id = id,
-        latitude = latitude,
-        longitude = longitude,
-        timestamp = timestamp,
-        isSynced = isSynced,
-        syncedAt = syncedAt
-    )
-
-    private fun LocationEntity.toDomain() = LocationRecord(
-        id = id,
-        latitude = latitude,
-        longitude = longitude,
-        timestamp = timestamp,
-        syncedAt = syncedAt
-    )
 }

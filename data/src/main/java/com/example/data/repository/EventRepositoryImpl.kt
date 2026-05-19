@@ -1,7 +1,8 @@
 package com.example.data.repository
 
 import com.example.data.local.dao.EventRecordDao
-import com.example.data.local.entity.EventRecordEntity
+import com.example.data.mapper.toDomain
+import com.example.data.mapper.toEntity
 import com.example.domain.model.EventRecord
 import com.example.domain.repository.EventRepository
 import kotlinx.coroutines.flow.Flow
@@ -30,23 +31,4 @@ internal class EventRepositoryImpl @Inject constructor(
     override suspend fun markEventsSynced(ids: List<Long>, syncedAt: Long) {
         if (ids.isNotEmpty()) dao.markSynced(ids, syncedAt)
     }
-
-    private fun EventRecord.toEntity() = EventRecordEntity(
-        id = id,
-        timestamp = timestamp,
-        type = type.name,
-        detail = detail,
-        note = note,
-        isSynced = isSynced,
-        syncedAt = syncedAt
-    )
-
-    private fun EventRecordEntity.toDomain() = EventRecord(
-        id = id,
-        timestamp = timestamp,
-        type = EventRecord.EventType.valueOf(type),
-        detail = detail,
-        note = note,
-        syncedAt = syncedAt
-    )
 }

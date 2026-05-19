@@ -1,7 +1,8 @@
 package com.example.data.repository
 
 import com.example.data.local.dao.NotificationDao
-import com.example.data.local.entity.NotificationEntity
+import com.example.data.mapper.toDomain
+import com.example.data.mapper.toEntity
 import com.example.domain.model.NotificationRecord
 import com.example.domain.repository.NotificationRepository
 import kotlinx.coroutines.flow.Flow
@@ -32,20 +33,4 @@ internal class NotificationRepositoryImpl @Inject constructor(
 
     override suspend fun deleteAll() =
         dao.deleteAll()
-
-    private fun NotificationRecord.toEntity() = NotificationEntity(
-        id = id,
-        type = type,
-        timestamp = timestamp,
-        extraArg = extraArg,
-        isRead = isRead
-    )
-
-    private fun NotificationEntity.toDomain() = NotificationRecord(
-        id = id,
-        type = type,
-        timestamp = timestamp,
-        extraArg = extraArg,
-        isRead = isRead
-    )
 }

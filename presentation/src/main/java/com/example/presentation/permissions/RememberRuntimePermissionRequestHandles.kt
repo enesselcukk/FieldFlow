@@ -6,16 +6,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
+import com.example.presentation.permissions.model.RuntimePermissionRequestHandles
 import com.example.utils.ACCESS_BACKGROUND_LOCATION
 import com.example.utils.permissions.AppRuntimePermissions
 import com.example.utils.permissions.hasBackgroundLocationRuntimePermission
 import com.example.utils.permissions.isForegroundLocationGranted
-
-data class RuntimePermissionRequestHandles(
-    val requestPostNotifications: () -> Unit,
-    val requestForegroundLocation: () -> Unit,
-    val requestBackgroundLocation: () -> Unit,
-)
 
 @Composable
 fun rememberRuntimePermissionRequestHandles(

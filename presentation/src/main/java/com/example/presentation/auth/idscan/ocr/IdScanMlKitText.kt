@@ -1,4 +1,4 @@
-package com.example.presentation.auth.idscan
+package com.example.presentation.auth.idscan.ocr
 
 import com.google.mlkit.vision.text.Text
 

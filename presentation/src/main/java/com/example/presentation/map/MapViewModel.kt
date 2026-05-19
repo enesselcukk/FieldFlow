@@ -12,6 +12,7 @@ import com.example.domain.usecase.geofence.SaveGeofenceZoneUseCase
 import com.example.domain.usecase.location.ObserveRecentLocationsUseCase
 import com.example.presentation.constants.FLOW_TIMEOUT_MS
 import com.example.presentation.constants.PLAYBACK_STEP_MS
+import com.example.presentation.map.model.MapUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.Job

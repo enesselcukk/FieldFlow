@@ -1,4 +1,4 @@
-package com.example.presentation.auth.idscan
+package com.example.presentation.auth.idscan.parser
 
 import com.example.domain.model.IdentityInfo
 import com.example.utils.extensions.containsLabelKey
@@ -102,16 +102,16 @@ class IdentityTextParser @Inject constructor() {
     private fun looksLikeAuxiliaryCertificateLine(s: String): Boolean {
         val u = s.uppercase()
         return u.contains("SERİ NO") ||
-                Regex("SER[Iİ]\\s*N[OoUÜ]").containsMatchIn(u) ||
-                u.contains("SERIES NO") ||
-                u.contains("DOCUMENT NO") ||
-                u.contains("SIRA NO")
+            Regex("SER[Iİ]\\s*N[OoUÜ]").containsMatchIn(u) ||
+            u.contains("SERIES NO") ||
+            u.contains("DOCUMENT NO") ||
+            u.contains("SIRA NO")
     }
 
     private fun looksLikeStandaloneDate(s: String): Boolean {
         val t = s.replace(" ", "")
         return Regex("^\\d{2}[.]\\d{2}[.]\\d{4}$").matches(t) ||
-                Regex("^\\d{2}/\\d{2}/\\d{4}$").matches(t)
+            Regex("^\\d{2}/\\d{2}/\\d{4}$").matches(t)
     }
 
     private companion object {

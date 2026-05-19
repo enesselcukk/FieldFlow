@@ -1,4 +1,4 @@
-package com.example.presentation.map
+package com.example.presentation.map.model
 
 import com.example.domain.model.GeofenceEvent
 import com.example.domain.model.GeofenceZone

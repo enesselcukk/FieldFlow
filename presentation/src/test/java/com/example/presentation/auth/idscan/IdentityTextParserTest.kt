@@ -1,41 +1,76 @@
 package com.example.presentation.auth.idscan
 
 import com.example.domain.model.IdentityInfo
+import com.example.presentation.auth.idscan.fixtures.IdScanOcrFixtures
+import com.example.presentation.auth.idscan.parser.IdentityTextParser
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 class IdentityTextParserTest {
 
-    private val parser = IdentityTextParser()
+    private lateinit var parser: IdentityTextParser
 
-    @Test
-    fun parsesNameAndSurnameFromLatinLabels() {
-        val text =
-            """
-            NAME ali
-            SURNAME veli
-            """.trimIndent()
-        val parsed = parser.parse(text)
-        assertEquals("ali", parsed.name.trim())
-        assertEquals("veli", parsed.surname.trim())
+    @Before
+    fun setUp() {
+        parser = IdentityTextParser()
     }
 
     @Test
-    fun parsesInlineColons() {
-        val text =
-            """
-            SURNAME: Selçuk
-            ADI: Enes
-            """.trimIndent()
-        val parsed = parser.parse(text)
-        assertTrue(parsed.name.isNotBlank())
-        assertTrue(parsed.surname.isNotBlank())
+    fun parse_extractsLatinNameAndSurname() {
+        val parsed = parser.parse(IdScanOcrFixtures.latinNameSurname)
+
+        assertEquals(
+            IdentityInfo(name = "Enes", surname = "Selçuk"),
+            parsed,
+        )
     }
 
     @Test
-    fun returnsEmptyWhenNoIdentityLines() {
-        val parsed = parser.parse("hello world")
-        assertEquals(IdentityInfo(name = "", surname = ""), parsed)
+    fun parse_extractsInlineColonLabels() {
+        val parsed = parser.parse(IdScanOcrFixtures.latinInlineColons)
+
+        assertEquals("Enes", parsed.name.trim())
+        assertEquals("Selçuk", parsed.surname.trim())
+    }
+
+    @Test
+    fun parse_extractsTurkishLabelsFromFollowingLines() {
+        val parsed = parser.parse(IdScanOcrFixtures.turkishMultiline)
+
+        assertEquals("Ahmet", parsed.name.trim())
+        assertEquals("Yılmaz", parsed.surname.trim())
+    }
+
+    @Test
+    fun parse_ignoresMrzNoiseAfterIdentityFields() {
+        val parsed = parser.parse(IdScanOcrFixtures.nameWithMrzNoise)
+
+        assertEquals("Ali", parsed.name.trim())
+        assertEquals("Veli", parsed.surname.trim())
+    }
+
+    @Test
+    fun parse_ignoresStandaloneDateLines() {
+        val parsed = parser.parse(IdScanOcrFixtures.nameWithDateNoise)
+
+        assertEquals("Ayşe", parsed.name.trim())
+        assertEquals("Demir", parsed.surname.trim())
+    }
+
+    @Test
+    fun parse_ignoresSerialNumberLines() {
+        val parsed = parser.parse(IdScanOcrFixtures.nameWithSerialLine)
+
+        assertEquals("Can", parsed.name.trim())
+        assertEquals("Öz", parsed.surname.trim())
+    }
+
+    @Test
+    fun parse_returnsEmptyIdentityWhenNoLabelsMatch() {
+        assertEquals(
+            IdentityInfo(name = "", surname = ""),
+            parser.parse(IdScanOcrFixtures.UNRELATED_TEXT),
+        )
     }
 }

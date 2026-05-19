@@ -2,6 +2,8 @@ package com.example.presentation.auth.idscan
 
 import androidx.lifecycle.ViewModel
 import com.example.domain.model.IdentityInfo
+import com.example.presentation.auth.idscan.model.IdScanUiState
+import com.example.presentation.auth.idscan.parser.IdentityTextParser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class IdScanViewModel @Inject constructor(
-    private val identityTextParser: IdentityTextParser
+    private val identityTextParser: IdentityTextParser,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(IdScanUiState())

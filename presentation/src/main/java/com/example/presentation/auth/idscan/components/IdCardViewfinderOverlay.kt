@@ -1,4 +1,4 @@
-package com.example.presentation.auth.idscan
+package com.example.presentation.auth.idscan.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
@@ -20,7 +20,6 @@ import com.example.presentation.constants.OutsideFrameAlpha
 import com.example.presentation.constants.ViewfinderCornerDp
 import com.example.presentation.constants.ViewfinderOuterMarginDp
 import com.example.presentation.constants.ViewfinderStrokeWidthDp
-
 
 @Composable
 internal fun IdCardViewfinderOverlay(

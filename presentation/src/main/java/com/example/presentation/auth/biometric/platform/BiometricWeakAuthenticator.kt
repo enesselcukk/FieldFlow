@@ -1,17 +1,19 @@
 package com.example.presentation.auth.biometric.platform
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.hardware.biometrics.BiometricManager
+import android.hardware.biometrics.BiometricPrompt
 import android.os.Build
+import android.os.CancellationSignal
 import android.util.Log
-import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
 import com.example.presentation.R
 import com.example.utils.extensions.findActivity
 
 private const val LogTag = "BiometricAuth"
 
+@SuppressLint("MissingPermission")
 internal fun authenticateWithWeakBiometric(
     context: Context,
     onSuccess: () -> Unit,
@@ -21,33 +23,39 @@ internal fun authenticateWithWeakBiometric(
         onError(context.getString(R.string.biometric_unavailable))
         return
     }
-    val activity = context.findActivity() as? FragmentActivity ?: run {
+
+    val activity = context.findActivity() ?: run {
         onError(context.getString(R.string.biometric_unavailable))
         return
     }
 
     val executor = ContextCompat.getMainExecutor(context)
     val callback = object : BiometricPrompt.AuthenticationCallback() {
-        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult?) {
             onSuccess()
         }
-        override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+
+        override fun onAuthenticationError(errorCode: Int, errString: CharSequence?) {
             Log.w(LogTag, "Weak biometric error code=$errorCode detail=$errString")
-            onError(userMessageForBiometricError(context, errorCode))
+            onError(userMessageForPlatformBiometricError(context, errorCode))
         }
+
         override fun onAuthenticationFailed() {
             onError(context.getString(R.string.biometric_failed))
         }
     }
 
-    val promptInfoBuilder = BiometricPrompt.PromptInfo.Builder()
+    val builder = BiometricPrompt.Builder(activity)
         .setTitle(context.getString(R.string.biometric_prompt_title))
         .setSubtitle(context.getString(R.string.biometric_prompt_subtitle))
-        .setNegativeButtonText(context.getString(R.string.biometric_prompt_cancel))
+        .setNegativeButton(
+            context.getString(R.string.biometric_prompt_cancel),
+            executor,
+        ) { _, _ -> onError("") }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        promptInfoBuilder.setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK)
+        builder.setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK)
     }
 
-    BiometricPrompt(activity, executor, callback).authenticate(promptInfoBuilder.build())
+    builder.build().authenticate(CancellationSignal(), executor, callback)
 }

@@ -68,11 +68,11 @@ The app is built in a **layered**, structured layout:
 
 ```mermaid
 flowchart TB
-    app["`:app` · Application"]
-    presentation["`:presentation` · Compose UI, ViewModels"]
-    data["`:data` · Room, SQLCipher, DataStore, Location, ML Kit"]
-    utils["`:utils` · Shared helpers"]
-    domain["`:domain` · Models, use cases"]
+    app[":app | Application"]
+    presentation[":presentation | Compose UI, ViewModels"]
+    data[":data | Room, SQLCipher, DataStore, Location, ML Kit"]
+    utils[":utils | Shared helpers"]
+    domain[":domain | Models, use cases"]
 
     app --> presentation
     app --> data

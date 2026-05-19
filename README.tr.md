@@ -68,11 +68,11 @@ Uygulama **katmanlı** bir yapıda kuruldu:
 
 ```mermaid
 flowchart TB
-    app["`:app` · Uygulama"]
-    presentation["`:presentation` · Compose arayüzü, ViewModeller"]
-    data["`:data` · Room, SQLCipher, DataStore, konum, ML Kit"]
-    utils["`:utils` · Ortak yardımcılar"]
-    domain["`:domain` · Modeller, use-case'ler"]
+    app[":app | Uygulama"]
+    presentation[":presentation | Compose arayüzü, ViewModeller"]
+    data[":data | Room, SQLCipher, DataStore, konum, ML Kit"]
+    utils[":utils | Ortak yardımcılar"]
+    domain[":domain | Modeller, use caseler"]
 
     app --> presentation
     app --> data

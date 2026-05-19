@@ -20,7 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.AppTheme
 import com.example.fieldflow.activation.AppActivationStore
 import com.example.fieldflow.navigation.MainNavigationHost
-import com.example.fieldflow.security.DeviceCompromiseWarningDialog
+import com.example.fieldflow.ui.security.DeviceCompromiseWarningDialog
 import com.example.fieldflow.ui.theme.FieldFlowTheme
 import com.example.presentation.notification.NotificationListViewModel
 import com.example.presentation.settings.SettingsViewModel

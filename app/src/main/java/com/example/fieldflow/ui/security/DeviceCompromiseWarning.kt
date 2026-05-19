@@ -1,4 +1,4 @@
-package com.example.fieldflow.security
+package com.example.fieldflow.ui.security
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning

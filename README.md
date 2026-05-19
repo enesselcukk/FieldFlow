@@ -68,41 +68,32 @@ The app is built in a **layered**, structured layout:
 
 ```mermaid
 flowchart TB
-    subgraph appMod["Gradle app module, Android Application"]
-        shell["Bootstrap: Application, WorkManager, sync, MainActivity, navigation host"]
-    end
+    app["`:app` · Application"]
+    presentation["`:presentation` · Compose UI, ViewModels"]
+    data["`:data` · Room, SQLCipher, DataStore, Location, ML Kit"]
+    utils["`:utils` · Shared helpers"]
+    domain["`:domain` · Models, use cases"]
 
-    subgraph presMod["Gradle presentation module, Android Library"]
-        ui["Compose UI, ViewModels"]
-    end
+    app --> presentation
+    app --> data
+    app --> domain
+    app --> utils
 
-    subgraph dataMod["Gradle data module, Android Library"]
-        direction LR
-        roomLayer["Persistence: Room, SQLCipher"]
-        prefLayer["Preferences: DataStore, Crypto"]
-    end
+    presentation --> domain
+    presentation --> utils
 
-    subgraph domMod["Gradle domain module, Android Library"]
-        domainCore["Business core: models, use cases"]
-    end
+    data --> domain
+    data --> utils
 
-    subgraph utilMod["Gradle utils module, Android Library"]
-        helpers["Cross-cutting helpers"]
-    end
+    utils --> domain
 
-    shell --> ui
-    shell --> roomLayer
-    shell --> prefLayer
-    shell --> domainCore
-    ui --> domainCore
-    ui --> helpers
-    roomLayer --> domainCore
-    prefLayer --> domainCore
+    classDef application fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef library fill:#f8fafc,stroke:#475569,color:#0f172a
+    classDef core fill:#eff6ff,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
 
-    classDef layerCluster fill:#f8fafc,stroke:#475569,color:#0f172a
-    classDef highlightCore fill:#eff6ff,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class appMod,presMod,dataMod,domMod,utilMod layerCluster
-    class domainCore highlightCore
+    class app application
+    class presentation,data,utils library
+    class domain core
 ```
 
 ---

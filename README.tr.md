@@ -68,41 +68,32 @@ Uygulama **katmanlı** bir yapıda kuruldu:
 
 ```mermaid
 flowchart TB
-    subgraph appMod["Gradle app modülü, Android Uygulama"]
-        shell["Önyükleme: Application, WorkManager, senk, MainActivity, navigasyon kabuğu"]
-    end
+    app["`:app` · Uygulama"]
+    presentation["`:presentation` · Compose arayüzü, ViewModeller"]
+    data["`:data` · Room, SQLCipher, DataStore, konum, ML Kit"]
+    utils["`:utils` · Ortak yardımcılar"]
+    domain["`:domain` · Modeller, use-case'ler"]
 
-    subgraph presMod["Gradle presentation modülü, Android Library"]
-        ui["Compose arayüzü, ViewModels"]
-    end
+    app --> presentation
+    app --> data
+    app --> domain
+    app --> utils
 
-    subgraph dataMod["Gradle data modülü, Android Library"]
-        direction LR
-        roomLayer["Kalıcılık: Room, SQLCipher"]
-        prefLayer["Tercihler: DataStore, şifreleme"]
-    end
+    presentation --> domain
+    presentation --> utils
 
-    subgraph domMod["Gradle domain modülü, Android Library"]
-        domainCore["İş çekirdeği: modeller, use-case sınıfları"]
-    end
+    data --> domain
+    data --> utils
 
-    subgraph utilMod["Gradle utils modülü, Android Library"]
-        helpers["Çapraz yardımcılar"]
-    end
+    utils --> domain
 
-    shell --> ui
-    shell --> roomLayer
-    shell --> prefLayer
-    shell --> domainCore
-    ui --> domainCore
-    ui --> helpers
-    roomLayer --> domainCore
-    prefLayer --> domainCore
+    classDef application fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef library fill:#f8fafc,stroke:#475569,color:#0f172a
+    classDef core fill:#eff6ff,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
 
-    classDef layerCluster fill:#f8fafc,stroke:#475569,color:#0f172a
-    classDef highlightCore fill:#eff6ff,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class appMod,presMod,dataMod,domMod,utilMod layerCluster
-    class domainCore highlightCore
+    class app application
+    class presentation,data,utils library
+    class domain core
 ```
 
 ---

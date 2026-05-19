@@ -36,6 +36,8 @@ https://github.com/user-attachments/assets/006d0a37-e08b-4424-a462-d6e7c81dac6d
 
 https://github.com/user-attachments/assets/32b2ba24-16ed-467a-9d29-4d54e52cea31
 
+https://github.com/user-attachments/assets/83e3f8c4-526c-407a-8b54-01d304adb73b
+
 ---
 
 ## Proje yapısı (modüller)

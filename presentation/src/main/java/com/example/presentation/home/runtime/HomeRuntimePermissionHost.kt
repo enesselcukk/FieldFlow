@@ -16,6 +16,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.example.presentation.constants.AutoPermissionCooldownMs
+import com.example.presentation.constants.PermissionResumeDebounceMs
 import com.example.presentation.home.HomeViewModel
 import com.example.presentation.home.dashboard.HomeDashboard
 import com.example.presentation.home.model.HomeUiState
@@ -25,10 +27,6 @@ import com.example.utils.permissions.snapshotRuntimePermissions
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.yield
-
-private const val PermissionResumeDebounceMs = 400L
-
-private const val AutoPermissionCooldownMs = 2500L
 
 @Composable
 internal fun HomeRuntimePermissionHost(

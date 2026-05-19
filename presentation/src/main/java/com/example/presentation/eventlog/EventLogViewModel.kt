@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.domain.model.EventRecord
 import com.example.domain.usecase.event.ObserveAllEventsUseCase
 import com.example.domain.usecase.event.UpdateEventNoteUseCase
+import com.example.presentation.eventlog.model.EventLogUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -21,4 +21,7 @@ internal const val ViewfinderStrokeWidthDp = 3
 internal const val MaxFrameWidthOfAvailable = 0.9f
 internal const val MaxFrameHeightOfAvailable = 0.65f
 internal const val OutsideFrameAlpha = 0.55f
+internal const val PermissionResumeDebounceMs = 400L
+
+internal const val AutoPermissionCooldownMs = 2500L
 

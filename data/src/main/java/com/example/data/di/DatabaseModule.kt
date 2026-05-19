@@ -16,9 +16,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import net.sqlcipher.database.SQLiteDatabase
-import net.sqlcipher.database.SupportFactory
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import javax.inject.Singleton
+import kotlin.text.Charsets.UTF_8
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -36,9 +36,8 @@ internal object DatabaseModule {
         } catch (e: SQLException) {
             android.util.Log.e("DatabaseModule", "Migration reset or failed; continuing with empty encrypted DB if needed", e)
         }
-        SQLiteDatabase.loadLibs(context)
-        val passphraseBytes = SQLiteDatabase.getBytes(passphrase.toCharArray())
-        val factory = SupportFactory(passphraseBytes)
+        SqlCipherDatabaseMigrator.ensureNativeLibraryLoaded()
+        val factory = SupportOpenHelperFactory(passphrase.toByteArray(UTF_8))
         return Room.databaseBuilder(context, AppDatabase::class.java, "fieldflow.db")
             .openHelperFactory(factory)
             .addMigrations(AppDatabase.MIGRATION_3_4, AppDatabase.MIGRATION_4_5, AppDatabase.MIGRATION_5_6)

@@ -1,5 +1,5 @@
--keep class net.sqlcipher.** { *; }
--dontwarn net.sqlcipher.**
+-keep class net.zetetic.database.** { *; }
+-dontwarn net.zetetic.database.**
 
 # Room (consumed by app release R8)
 -keep class * extends androidx.room.RoomDatabase

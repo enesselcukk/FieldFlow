@@ -56,6 +56,7 @@ dependencies {
 
     implementation(libs.androidx.security.crypto)
     implementation(libs.sqlcipher.android)
+    implementation(libs.androidx.sqlite)
 
     // DataStore
     implementation(libs.datastore.preferences)

@@ -168,7 +168,7 @@ Aşağıda Gradle’a gerçekten eklenen başlıca kütüphaneler var; tam sür�
 | **DataStore Preferences** | 1.1.1 | Tercihler / hafif yapılandırma |
 | **Room** (runtime, ktx) | 2.7.0 | Yerel ilişkisel veri |
 | **security-crypto** | 1.1.0 | Keystore destekli güvenli tercihler |
-| **SQLCipher (android-database-sqlcipher)** | 4.5.4 | Şifreli SQLite |
+| **SQLCipher (sqlcipher-android)** | 4.16.0 | Şifreli SQLite |
 
 ### Google, harita ve konum
 

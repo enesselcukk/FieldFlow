@@ -6,8 +6,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +39,7 @@ fun ActivationCodeScreen(
     val invalidCodeText = stringResource(R.string.activation_invalid_code)
     var input by remember { mutableStateOf("") }
     var errorText by remember { mutableStateOf<String?>(null) }
+    val scrollState = rememberScrollState()
 
     fun submitActivation() {
         val normalizedInput = input.trim()
@@ -47,54 +52,65 @@ fun ActivationCodeScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = stringResource(R.string.activation_title),
-            style = MaterialTheme.typography.headlineSmall
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text = stringResource(R.string.activation_description))
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = input,
-            onValueChange = {
-                input = it.filter(Char::isDigit).take(6)
-                errorText = null
-            },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.activation_code_label)) },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = { submitActivation() }
-            ),
-            isError = errorText != null,
-        )
-
-        if (errorText != null) {
-            Spacer(modifier = Modifier.height(8.dp))
+    Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(scrollState)
+                .padding(horizontal = 16.dp)
+                .padding(top = 24.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             Text(
-                text = errorText.orEmpty(),
-                color = MaterialTheme.colorScheme.error
+                text = stringResource(R.string.activation_title),
+                style = MaterialTheme.typography.headlineSmall,
             )
+            Text(text = stringResource(R.string.activation_description))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = input,
+                onValueChange = {
+                    input = it.filter(Char::isDigit).take(6)
+                    errorText = null
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(stringResource(R.string.activation_code_label)) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done,
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { submitActivation() },
+                ),
+                isError = errorText != null,
+            )
+
+            if (errorText != null) {
+                Text(
+                    text = errorText.orEmpty(),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = { submitActivation() },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = input.length == 6
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .imePadding()
+                .padding(horizontal = 16.dp)
+                .padding(top = 8.dp, bottom = 16.dp),
         ) {
-            Text(stringResource(R.string.activation_button))
+            Button(
+                onClick = { submitActivation() },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = input.length == 6,
+            ) {
+                Text(stringResource(R.string.activation_button))
+            }
         }
     }
 }

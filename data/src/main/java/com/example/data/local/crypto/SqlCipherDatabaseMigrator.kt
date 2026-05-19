@@ -3,10 +3,14 @@ package com.example.data.local.crypto
 import android.content.Context
 import android.database.SQLException
 import android.util.Log
-import net.sqlcipher.database.SQLiteDatabase
+import net.zetetic.database.sqlcipher.SQLiteDatabase
 import java.io.File
 
 internal object SqlCipherDatabaseMigrator {
+
+    fun ensureNativeLibraryLoaded() {
+        System.loadLibrary("sqlcipher")
+    }
 
     private const val TAG = "SqlCipherMigrator"
     private const val DB_NAME = "fieldflow.db"
@@ -23,7 +27,7 @@ internal object SqlCipherDatabaseMigrator {
     }
 
     fun migratePlainDatabaseIfNeeded(context: Context, passphrase: String) {
-        SQLiteDatabase.loadLibs(context)
+        ensureNativeLibraryLoaded()
         val dbFile = context.getDatabasePath(DB_NAME)
         if (!dbFile.exists()) return
 
@@ -60,9 +64,9 @@ internal object SqlCipherDatabaseMigrator {
         try {
             plainDb = SQLiteDatabase.openDatabase(
                 backup.absolutePath,
-                "",
                 null,
-                SQLiteDatabase.OPEN_READWRITE
+                SQLiteDatabase.OPEN_READWRITE,
+                null
             )
             plainDb.rawExecSQL("ATTACH DATABASE '$encPath' AS encrypted KEY '$keySql'")
             plainDb.rawExecSQL("SELECT sqlcipher_export('encrypted')")
@@ -96,9 +100,10 @@ internal object SqlCipherDatabaseMigrator {
         try {
             val db = SQLiteDatabase.openDatabase(
                 dbFile.absolutePath,
-                passphrase.toCharArray(),
+                passphrase,
                 null,
-                SQLiteDatabase.OPEN_READONLY
+                SQLiteDatabase.OPEN_READONLY,
+                null
             )
             db.close()
             true
@@ -110,9 +115,9 @@ internal object SqlCipherDatabaseMigrator {
         try {
             val db = SQLiteDatabase.openDatabase(
                 dbFile.absolutePath,
-                "",
                 null,
-                SQLiteDatabase.OPEN_READONLY
+                SQLiteDatabase.OPEN_READONLY,
+                null
             )
             db.close()
             true

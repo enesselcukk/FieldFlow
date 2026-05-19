@@ -168,7 +168,7 @@ Below is what actually lands in Gradle—main libraries only. Pin‑exact versio
 | **DataStore Preferences** | 1.1.1 | Preferences / light configuration |
 | **Room** (runtime, ktx) | 2.7.0 | Local relational data |
 | **security-crypto** | 1.1.0 | Keystore-backed secure preferences |
-| **SQLCipher (android-database-sqlcipher)** | 4.5.4 | Encrypted SQLite |
+| **SQLCipher (sqlcipher-android)** | 4.16.0 | Encrypted SQLite |
 
 ### Google, maps, and location
 

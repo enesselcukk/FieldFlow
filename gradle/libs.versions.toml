@@ -24,7 +24,8 @@ playServicesLocation = "21.3.0"
 serialization = "1.7.3"
 navigation3 = "1.1.1"
 cameraX = "1.6.1"
-sqlcipher = "4.5.4"
+sqlcipher = "4.16.0"
+sqlite = "2.6.2"
 securityCrypto = "1.1.0"
 androidxTestCore = "1.6.1"
 robolectric = "4.14.1"
@@ -75,7 +76,8 @@ datastore-preferences = { group = "androidx.datastore", name = "datastore-prefer
 
 # Local encryption (SQLCipher + Keystore-backed prefs)
 androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
-sqlcipher-android = { group = "net.zetetic", name = "android-database-sqlcipher", version.ref = "sqlcipher" }
+sqlcipher-android = { group = "net.zetetic", name = "sqlcipher-android", version.ref = "sqlcipher" }
+androidx-sqlite = { group = "androidx.sqlite", name = "sqlite", version.ref = "sqlite" }
 
 # WorkManager
 work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workManager" }

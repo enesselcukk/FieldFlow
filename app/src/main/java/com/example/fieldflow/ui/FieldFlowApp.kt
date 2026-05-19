@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -15,6 +14,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalResources
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.AppTheme
@@ -25,7 +25,6 @@ import com.example.fieldflow.ui.theme.FieldFlowTheme
 import com.example.presentation.notification.NotificationListViewModel
 import com.example.presentation.settings.SettingsViewModel
 import com.example.utils.security.RootDetector
-import com.example.utils.settings.SettingsBootstrapPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.Locale
 
@@ -40,20 +39,9 @@ internal fun FieldFlowApp(
         lifecycleOwner = activity
     )
 
-    val notificationViewModel: NotificationListViewModel =
-        hiltViewModel(viewModelStoreOwner = activity)
-
-    val bootstrapLanguageCode = SettingsBootstrapPreferences.readLanguageCode(activity)
-    val resolvedLanguage = SettingsBootstrapPreferences.resolveLanguage(
-        bootstrapLanguageCode,
-        prefs.language,
-    )
-
-    val bootstrapThemeName = SettingsBootstrapPreferences.readThemeName(activity)
-    val resolvedTheme = SettingsBootstrapPreferences.resolveTheme(
-        bootstrapThemeName,
-        prefs.theme,
-    )
+    val notificationViewModel: NotificationListViewModel = hiltViewModel(viewModelStoreOwner = activity)
+    val resolvedLanguage = prefs.language
+    val resolvedTheme = prefs.theme
 
     val systemInDarkTheme = isSystemInDarkTheme()
     val deviceCompromised = remember { RootDetector.isDeviceCompromised() }
@@ -66,28 +54,27 @@ internal fun FieldFlowApp(
         AppTheme.SYSTEM -> systemInDarkTheme
     }
 
-    val baseConfiguration = LocalConfiguration.current
-    val localizedConfiguration = remember(baseConfiguration, resolvedLanguage) {
-        Configuration(baseConfiguration).apply {
+    val localizedContext = remember(activity, resolvedLanguage) {
+        val configuration = Configuration(activity.resources.configuration).apply {
             setLocale(Locale.forLanguageTag(resolvedLanguage.code))
         }
+        activity.createConfigurationContext(configuration)
     }
-
-    LaunchedEffect(resolvedLanguage) {
-        val locale = Locale.forLanguageTag(resolvedLanguage.code)
-        Locale.setDefault(locale)
-        @Suppress("DEPRECATION")
-        activity.resources.updateConfiguration(
-            Configuration(activity.resources.configuration).also { it.setLocale(locale) },
-            activity.resources.displayMetrics
-        )
+    val localizedConfiguration = remember(localizedContext) {
+        Configuration(localizedContext.resources.configuration)
+    }
+    val localizedResources = remember(localizedContext) {
+        localizedContext.resources
     }
 
     FieldFlowTheme(
         darkTheme = isDarkTheme,
         dynamicColor = resolvedTheme == AppTheme.SYSTEM
     ) {
-        CompositionLocalProvider(LocalConfiguration provides localizedConfiguration) {
+        CompositionLocalProvider(
+            LocalConfiguration provides localizedConfiguration,
+            LocalResources provides localizedResources,
+        ) {
             Box(Modifier.fillMaxSize()) {
                 MainNavigationHost(
                     activity = activity,

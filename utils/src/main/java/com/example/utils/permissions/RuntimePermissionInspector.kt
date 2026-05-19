@@ -7,6 +7,8 @@ import android.os.Build
 import androidx.core.content.ContextCompat
 import com.example.domain.model.RuntimePermissions
 import com.example.utils.ACCESS_BACKGROUND_LOCATION
+import com.example.utils.CAMERA
+import com.example.utils.POST_NOTIFICATIONS
 
 fun Context.snapshotRuntimePermissions(): RuntimePermissions =
     RuntimePermissions(
@@ -17,7 +19,7 @@ fun Context.snapshotRuntimePermissions(): RuntimePermissions =
 
 fun Context.hasNotificationRuntimePermission(): Boolean =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        ContextCompat.checkSelfPermission(this, AppRuntimePermissions.postNotifications) ==
+        ContextCompat.checkSelfPermission(this, POST_NOTIFICATIONS) ==
             PackageManager.PERMISSION_GRANTED
     } else {
         true
@@ -40,7 +42,7 @@ fun Context.hasBackgroundLocationRuntimePermission(): Boolean =
     }
 
 fun Context.hasCameraPermission(): Boolean =
-    ContextCompat.checkSelfPermission(this, AppRuntimePermissions.camera) ==
+    ContextCompat.checkSelfPermission(this, CAMERA) ==
         PackageManager.PERMISSION_GRANTED
 
 fun Map<String, Boolean>.isForegroundLocationGranted(): Boolean =

@@ -146,6 +146,8 @@
     <string name="settings_language_english">English</string>
     <string name="settings_location_interval_title">Konum Güncelleme Sıklığı</string>
     <string name="settings_location_interval_locked_hint">Aktivasyon sonrası kullanılabilir</string>
+    <string name="settings_interval_seconds">%1$ds</string>
+    <string name="settings_interval_minutes">%1$ddk</string>
     <string name="settings_theme_title">Tema</string>
     <string name="settings_theme_light">Açık</string>
     <string name="settings_theme_dark">Koyu</string>

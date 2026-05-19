@@ -8,6 +8,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import com.example.presentation.permissions.model.RuntimePermissionRequestHandles
 import com.example.utils.ACCESS_BACKGROUND_LOCATION
+import com.example.utils.POST_NOTIFICATIONS
 import com.example.utils.permissions.AppRuntimePermissions
 import com.example.utils.permissions.hasBackgroundLocationRuntimePermission
 import com.example.utils.permissions.isForegroundLocationGranted
@@ -48,7 +49,7 @@ fun rememberRuntimePermissionRequestHandles(
     return RuntimePermissionRequestHandles(
         requestPostNotifications = {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                notificationLauncher.launch(AppRuntimePermissions.postNotifications)
+                notificationLauncher.launch(POST_NOTIFICATIONS)
             }
         },
         requestForegroundLocation = {

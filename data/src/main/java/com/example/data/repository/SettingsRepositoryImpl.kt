@@ -28,17 +28,17 @@ internal class SettingsRepositoryImpl @Inject constructor(
         context.settingsDataStore.data.map { it.toUserPreferences() }
 
     override suspend fun setLanguage(language: AppLanguage) {
+        SettingsBootstrapPreferences.writeLanguageCodeSync(context, language.code)
         context.settingsDataStore.edit {
             it[SettingsPreferencesKeys.language] = language.toPreferenceValue()
         }
-        SettingsBootstrapPreferences.writeLanguageCodeSync(context, language.code)
     }
 
     override suspend fun setTheme(theme: AppTheme) {
+        SettingsBootstrapPreferences.writeThemeNameSync(context, theme.name)
         context.settingsDataStore.edit {
             it[SettingsPreferencesKeys.theme] = theme.toPreferenceValue()
         }
-        SettingsBootstrapPreferences.writeThemeNameSync(context, theme.name)
     }
 
     override suspend fun setLocationInterval(seconds: Int) {

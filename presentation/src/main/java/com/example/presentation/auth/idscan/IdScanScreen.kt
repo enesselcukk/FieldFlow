@@ -30,6 +30,7 @@ import com.example.presentation.auth.idscan.components.IdScanCaptureContent
 import com.example.presentation.auth.idscan.components.IdScanConfirmContent
 import com.example.presentation.auth.idscan.ocr.captureAndRunOcr
 import com.example.presentation.constants.IdScanPhase
+import com.example.utils.CAMERA
 import com.example.utils.permissions.AppRuntimePermissions
 import com.example.utils.permissions.hasCameraPermission
 
@@ -82,7 +83,7 @@ fun IdScanScreen(
 
     LaunchedEffect(Unit) {
         if (!hasCameraPermission) {
-            permissionLauncher.launch(AppRuntimePermissions.camera)
+            permissionLauncher.launch(CAMERA)
         }
     }
 
@@ -130,7 +131,7 @@ fun IdScanScreen(
                 hasCameraPermission = hasCameraPermission,
                 previewView = previewView,
                 uiState = uiState,
-                onRequestPermission = { permissionLauncher.launch(AppRuntimePermissions.camera) },
+                onRequestPermission = { permissionLauncher.launch(CAMERA) },
                 onEnterManually = {
                     viewModel.clearDetectedIdentity()
                     phase = IdScanPhase.ConfirmDetails

@@ -2,7 +2,7 @@
 
 **Aktivasyon kodu :** **`123456`** — ilk kurulumda açılan aktivasyon ekranında **tam olarak** bu altı rakamı girin.
 
-Bu çok modüllü uygulama **Kotlin** ve **Jetpack Compose** ile yazıldı: saha tarzı akışlar (kimlik tarama/OCR), biyometrik doğrulama, aktivasyon, harita ve canlı konum, cihaz üzerinde bildirimler, arka planda senkron ve olay günlüğü—hepsi tek kod tabanında.
+**FieldFlow**, **Kotlin** ve **Jetpack Compose** ile geliştirilmiş çok modüllü bir **Saha Personeli Takip Uygulaması**dır: kimlik tarama (OCR), biyometrik doğrulama, aktivasyon, harita ve canlı konum, cihaz üzerinde bildirimler, arka planda senkron ve olay günlüğü—hepsi tek kod tabanında.
 
 **English:** [README.md](README.md)
 

@@ -2,7 +2,7 @@
 
 **Activation code :** **`123456`** — enter exactly these six digits on the onboarding activation screen.
 
-**Kotlin** and **Jetpack Compose** drive this multi-module Android app: field-style flows with ID scanning (OCR), biometrics, activation, maps and live location, on-device notifications, background sync, and an event log—all in one codebase.
+**FieldFlow** is a multi-module **field staff tracking** Android app built with **Kotlin** and **Jetpack Compose**: ID scanning (OCR), biometrics, activation, maps and live location, on-device notifications, background sync, and an event log—all in one codebase.
 
 **Türkçe:** [README.tr.md](README.tr.md)
 

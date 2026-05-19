@@ -7,6 +7,7 @@ import com.example.domain.usecase.notification.DeleteNotificationUseCase
 import com.example.domain.usecase.notification.MarkAllNotificationsReadUseCase
 import com.example.domain.usecase.notification.ObserveAllNotificationsUseCase
 import com.example.domain.usecase.notification.ObserveUnreadNotificationCountUseCase
+import com.example.presentation.notification.model.NotificationListUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

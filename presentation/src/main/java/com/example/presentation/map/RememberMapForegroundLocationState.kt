@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.example.presentation.map.model.MapForegroundLocationState
 import com.example.presentation.permissions.rememberRuntimePermissionRequestHandles
 import com.example.utils.permissions.hasForegroundLocationPermission
 

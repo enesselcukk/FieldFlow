@@ -18,7 +18,7 @@ import androidx.compose.ui.res.stringResource
 import com.example.fieldflow.R
 import com.example.presentation.R as PresentationR
 import com.example.presentation.constants.NOTIFICATION_BADGE_MAX
-import com.example.presentation.notification.NotificationListUiState
+import com.example.presentation.notification.model.NotificationListUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -1,9 +1,9 @@
-package com.example.presentation.notification
+package com.example.presentation.notification.model
 
 import com.example.domain.model.NotificationRecord
 
 data class NotificationListUiState(
     val notifications: List<NotificationRecord> = emptyList(),
     val unreadCount: Int = 0,
-    val showDeleteAllDialog: Boolean = false
+    val showDeleteAllDialog: Boolean = false,
 )

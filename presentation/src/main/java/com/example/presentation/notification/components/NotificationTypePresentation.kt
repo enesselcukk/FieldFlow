@@ -1,4 +1,4 @@
-package com.example.presentation.notification
+package com.example.presentation.notification.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BatteryAlert
@@ -12,6 +12,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.example.presentation.R
+import com.example.presentation.notification.model.NotificationDetailFooterAction
+import com.example.presentation.notification.model.NotificationTypeKind
 
 @Composable
 internal fun notificationTitleForKind(kind: NotificationTypeKind): String =
@@ -28,12 +30,10 @@ internal fun notificationBodyForKind(kind: NotificationTypeKind, extraArg: Strin
     when (kind) {
         NotificationTypeKind.Geofence ->
             stringResource(R.string.notif_geofence_detail, extraArg ?: "")
-
         NotificationTypeKind.Internet -> stringResource(R.string.notif_internet_lost_detail)
         NotificationTypeKind.Location -> stringResource(R.string.notif_location_disabled_detail)
         NotificationTypeKind.Battery ->
             stringResource(R.string.notif_battery_low_detail, extraArg?.toIntOrNull() ?: 0)
-
         NotificationTypeKind.Unknown -> ""
     }
 
@@ -73,7 +73,6 @@ internal fun notificationDetailFooterAction(kind: NotificationTypeKind): Notific
         NotificationTypeKind.Internet,
         NotificationTypeKind.Location,
         NotificationTypeKind.Battery,
-            -> NotificationDetailFooterAction.Home
-
+        -> NotificationDetailFooterAction.Home
         NotificationTypeKind.Unknown -> NotificationDetailFooterAction.None
     }

@@ -1,4 +1,4 @@
-package com.example.presentation.map
+package com.example.presentation.map.model
 
 data class MapForegroundLocationState(
     val hasForegroundLocation: Boolean,

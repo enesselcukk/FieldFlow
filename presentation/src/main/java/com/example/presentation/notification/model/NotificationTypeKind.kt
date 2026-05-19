@@ -1,4 +1,4 @@
-package com.example.presentation.notification
+package com.example.presentation.notification.model
 
 import com.example.domain.constants.NOTIF_TYPE_BATTERY
 import com.example.domain.constants.NOTIF_TYPE_GEOFENCE
@@ -10,7 +10,8 @@ internal enum class NotificationTypeKind {
     Internet,
     Location,
     Battery,
-    Unknown,;
+    Unknown,
+    ;
 
     companion object {
         fun from(type: String): NotificationTypeKind = when (type) {

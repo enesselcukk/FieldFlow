@@ -26,7 +26,7 @@ import com.example.presentation.home.HomeScreen
 import com.example.presentation.map.MapScreen
 import com.example.presentation.notification.NotificationDetailScreen
 import com.example.presentation.notification.NotificationListScreen
-import com.example.presentation.notification.NotificationListUiState
+import com.example.presentation.notification.model.NotificationListUiState
 import com.example.presentation.notification.NotificationListViewModel
 import com.example.presentation.settings.SettingsScreen
 

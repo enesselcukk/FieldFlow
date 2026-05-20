@@ -22,7 +22,7 @@ internal fun SettingsContent(
     onLanguageSelected: (AppLanguage) -> Unit,
     onThemeSelected: (AppTheme) -> Unit,
     onLocationIntervalSelected: (Int) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier

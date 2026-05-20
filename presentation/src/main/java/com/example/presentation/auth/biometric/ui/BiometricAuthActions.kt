@@ -32,7 +32,7 @@ internal fun BiometricAuthActionColumn(
     ) {
         when (interactive) {
             BiometricInteractiveUiState.BiometricReady -> {
-                BiometricPrimaryButton(
+                BiometricAnimatedVerifyButton(
                     label = stringResource(R.string.biometric_button),
                     onClick = {
                         onPromptErrorChange(null)
@@ -48,25 +48,19 @@ internal fun BiometricAuthActionColumn(
             }
 
             is BiometricInteractiveUiState.NeedsEnrollment -> {
-                BiometricSecondaryButton(
-                    label = stringResource(R.string.biometric_open_enrollment_settings),
-                    onClick = { context.launchBiometricEnrollmentFlow() },
+                BiometricNeedsEnrollmentActionColumn(
+                    canUseDeviceCredential = interactive.canUseDeviceCredential,
+                    enrollmentLabel = stringResource(R.string.biometric_open_enrollment_settings),
+                    screenLockLabel = stringResource(R.string.biometric_use_screen_lock),
+                    securitySettingsLabel = stringResource(R.string.biometric_open_security_settings),
+                    onOpenEnrollmentSettings = { context.launchBiometricEnrollmentFlow() },
+                    onContinueWithScreenLock = runDeviceCredential,
+                    onOpenSecuritySettings = {
+                        context.launchSettingsSafely(
+                            Intent(Settings.ACTION_SECURITY_SETTINGS),
+                        )
+                    },
                 )
-                if (interactive.canUseDeviceCredential) {
-                    BiometricPrimaryButton(
-                        label = stringResource(R.string.biometric_use_screen_lock),
-                        onClick = runDeviceCredential,
-                    )
-                } else {
-                    BiometricPrimaryButton(
-                        label = stringResource(R.string.biometric_open_security_settings),
-                        onClick = {
-                            context.launchSettingsSafely(
-                                Intent(Settings.ACTION_SECURITY_SETTINGS),
-                            )
-                        },
-                    )
-                }
             }
 
             BiometricInteractiveUiState.DeviceCredentialOnly -> {

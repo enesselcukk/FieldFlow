@@ -24,7 +24,11 @@
     <string name="activation_invalid_code">Invalid activation code.</string>
     <string name="activation_button">Activate</string>
     <string name="biometric_title">Biometric Verification</string>
-    <string name="biometric_description">Use your fingerprint or face to continue.</string>
+    <string name="biometric_setup_title">Set up biometrics</string>
+    <string name="biometric_description">When you tap verify, your device chooses the best method—fingerprint sensor or face unlock.</string>
+    <string name="biometric_method_fingerprint">Fingerprint</string>
+    <string name="biometric_method_face">Face</string>
+    <string name="biometric_methods_joiner">·</string>
     <string name="biometric_button">Verify with Biometrics</string>
     <string name="biometric_prompt_title">Verify your identity</string>
     <string name="biometric_prompt_subtitle">Use fingerprint or face authentication</string>

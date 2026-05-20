@@ -25,7 +25,11 @@
     <string name="activation_invalid_code">Geçersiz aktivasyon kodu.</string>
     <string name="activation_button">Etkinleştir</string>
     <string name="biometric_title">Biyometrik Doğrulama</string>
-    <string name="biometric_description">Devam etmek için parmak izinizi veya yüzünüzü kullanın.</string>
+    <string name="biometric_setup_title">Biyometriyi kurun</string>
+    <string name="biometric_description">Doğrula dediğinizde cihazınız uygun olanı seçer; parmak izi sensörü veya yüz tanımayı kullanabilirsiniz.</string>
+    <string name="biometric_method_fingerprint">Parmak izi</string>
+    <string name="biometric_method_face">Yüz tanıma</string>
+    <string name="biometric_methods_joiner">·</string>
     <string name="biometric_button">Biyometrik ile Doğrula</string>
     <string name="biometric_prompt_title">Kimliğinizi doğrulayın</string>
     <string name="biometric_prompt_subtitle">Parmak izi veya yüz tanıma kullanın</string>

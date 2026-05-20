@@ -13,15 +13,12 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.example.presentation.R
 import com.example.presentation.auth.biometric.model.BiometricInteractiveUiState
 import com.example.presentation.auth.biometric.platform.authenticateWithDeviceCredential
 
@@ -60,10 +57,14 @@ internal fun BiometricAuthInteractiveScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            BiometricHeroGlyph(biometricHeroIcon(interactive))
-            Spacer(modifier = Modifier.height(32.dp))
+            when (interactive) {
+                BiometricInteractiveUiState.BiometricReady -> BiometricDualMethodHero(emphasized = true)
+                is BiometricInteractiveUiState.NeedsEnrollment -> BiometricDualMethodHero(emphasized = false)
+                else -> BiometricHeroGlyph(biometricHeroIcon(interactive))
+            }
+            Spacer(modifier = Modifier.height(28.dp))
             BiometricHeadlineBlock(
-                title = stringResource(R.string.biometric_title),
+                title = biometricTitleForInteractive(interactive),
                 description = description.takeIf { it.isNotEmpty() },
             )
             BiometricErrorBanner(promptError = promptError)
@@ -71,26 +72,15 @@ internal fun BiometricAuthInteractiveScreen(
 
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 3.dp,
+            tonalElevation = 4.dp,
             shadowElevation = 0.dp,
         ) {
-            Column(
-                modifier = Modifier
+            Column(modifier = Modifier
                     .navigationBarsPadding()
-                    .padding(horizontal = 24.dp, vertical = 22.dp),
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
-                        thickness = 1.dp,
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                }
                 BiometricAuthActionColumn(
                     interactive = interactive,
                     context = context,

@@ -30,7 +30,7 @@
 
 ## Screen recording
 
-https://github.com/user-attachments/assets/6b68f554-2015-4d10-a716-1f478e0d9088
+https://github.com/user-attachments/assets/4820c3eb-fa47-47c5-bab6-697fbdd32118
 
 https://github.com/user-attachments/assets/006d0a37-e08b-4424-a462-d6e7c81dac6d
 

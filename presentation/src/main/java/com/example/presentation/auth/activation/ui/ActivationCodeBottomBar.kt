@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -26,9 +27,13 @@ internal fun ActivationCodeBottomBar(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        tonalElevation = 6.dp,
-        shadowElevation = 0.dp,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 1.dp,
+        shadowElevation = 6.dp,
+        border = BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant,
+        ),
     ) {
         ActivationEnterRevealSection(
             modifier = Modifier

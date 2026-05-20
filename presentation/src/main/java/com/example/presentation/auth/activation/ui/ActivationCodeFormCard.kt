@@ -71,7 +71,7 @@ private fun ActivationCodeFilledCardSurface(content: @Composable () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = CardCornerShape,
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
         tonalElevation = 4.dp,
         shadowElevation = 0.dp,
     ) {

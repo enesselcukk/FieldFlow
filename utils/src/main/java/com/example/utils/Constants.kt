@@ -3,6 +3,7 @@ package com.example.utils
 import android.Manifest
 
 const val ACTION_MANAGE_APP_PERMISSIONS = "android.settings.MANAGE_APP_PERMISSIONS"
+const val ACTION_APP_PERMISSION_SETTINGS = "android.settings.APP_PERMISSION_SETTINGS"
 const val EXTRA_PERMISSION_GROUP_NAME = "android.intent.extra.PERMISSION_GROUP_NAME"
 const val ACCESS_BACKGROUND_LOCATION = "android.permission.ACCESS_BACKGROUND_LOCATION"
 const val PREFS_NAME = "fieldflow_locale_bootstrap"

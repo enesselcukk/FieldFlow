@@ -47,11 +47,13 @@ internal fun ActivationPrimaryButton(
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 2.dp,
             pressedElevation = 4.dp,
+            disabledElevation = 0.dp,
         ),
         colors = ButtonDefaults.buttonColors(
-            disabledContainerColor =
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.72f),
-            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.62f),
         ),
     ) {
         Text(

@@ -1,7 +1,6 @@
 package com.example.fieldflow.app
 
 import android.app.Application
-import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -12,19 +11,16 @@ import com.example.domain.repository.SettingsRepository
 import com.example.fieldflow.sync.SyncWorker
 import com.example.utils.settings.SettingsBootstrapPreferences
 import dagger.hilt.android.HiltAndroidApp
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.osmdroid.config.Configuration as OsmdroidConfiguration
 import java.io.File
 import javax.inject.Inject
 
 @HiltAndroidApp
 internal class FieldFlowApplication : Application(), Configuration.Provider {
-
-    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     @Inject lateinit var workerFactory: HiltWorkerFactory
 
@@ -54,13 +50,15 @@ internal class FieldFlowApplication : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        applicationScope.launch {
-            runCatching {
-                val prefs = settingsRepository.preferences.first()
-                SettingsBootstrapPreferences.writeAllSync(
-                    this@FieldFlowApplication,
-                    prefs,
-                )
+        runBlocking {
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    val prefs = settingsRepository.preferences.first()
+                    SettingsBootstrapPreferences.writeAllSync(
+                        this@FieldFlowApplication,
+                        prefs,
+                    )
+                }
             }
         }
         OsmdroidConfiguration.getInstance().apply {

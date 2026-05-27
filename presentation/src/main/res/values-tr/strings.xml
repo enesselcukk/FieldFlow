@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_activated_message">Hoş geldiniz! Güvenli şekilde giriş yaptınız.</string>
     <string name="id_scan_title">Kimlik Kartı Tarama</string>
     <string name="id_scan_description">Kimlik kartınızın ön yüzünü kameraya gösterin ve tara butonuna dokunun.</string>
     <string name="id_scan_frame_hint">Kartı çerçevenin içinde sabit tutun. İyi aydınlatma kullanın, yansımaları önleyin.</string>

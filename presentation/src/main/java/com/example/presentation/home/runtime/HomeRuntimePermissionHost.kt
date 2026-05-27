@@ -33,7 +33,6 @@ import kotlinx.coroutines.yield
 internal fun HomeRuntimePermissionHost(
     uiState: HomeUiState,
     viewModel: HomeViewModel,
-    message: String,
     onNavigateToMap: () -> Unit,
     onNavigateToEventLog: () -> Unit,
 ) {
@@ -106,7 +105,6 @@ internal fun HomeRuntimePermissionHost(
 
     HomeDashboard(
         uiState = uiState,
-        message = message,
         onToggleTracking = viewModel::toggleTracking,
         onNavigateToMap = onNavigateToMap,
         onNavigateToEventLog = onNavigateToEventLog,

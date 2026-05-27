@@ -146,7 +146,6 @@ internal fun MainNavigationHost(
                 .padding(innerPadding)
         ) {
             MainNavDisplay(
-                activity = activity,
                 backStack = backStack,
                 router = router,
                 activationStore = activationStore,

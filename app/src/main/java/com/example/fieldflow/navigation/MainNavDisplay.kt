@@ -32,7 +32,6 @@ import com.example.presentation.settings.SettingsScreen
 
 @Composable
 internal fun MainNavDisplay(
-    activity: ComponentActivity,
     backStack: NavBackStack<NavKey>,
     router: MainNavRouter,
     activationStore: AppActivationStore,
@@ -66,7 +65,6 @@ internal fun MainNavDisplay(
 
             entry<HomeRoute> {
                 HomeScreen(
-                    message = activity.getString(R.string.app_activated_message),
                     onNavigateToMap = router::navigateToMap,
                     onNavigateToEventLog = router::navigateToEventLog
                 )

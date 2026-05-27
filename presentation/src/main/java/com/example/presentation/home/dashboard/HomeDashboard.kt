@@ -30,7 +30,6 @@ import com.example.utils.extensions.openAppNotificationSettings
 @Composable
 internal fun HomeDashboard(
     uiState: HomeUiState,
-    message: String,
     onToggleTracking: () -> Unit,
     onNavigateToMap: () -> Unit,
     onNavigateToEventLog: () -> Unit,
@@ -47,7 +46,7 @@ internal fun HomeDashboard(
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = message,
+            text = stringResource(R.string.app_activated_message),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

@@ -8,7 +8,6 @@ import com.example.presentation.home.runtime.HomeRuntimePermissionHost
 
 @Composable
 fun HomeScreen(
-    message: String,
     onNavigateToMap: () -> Unit = {},
     onNavigateToEventLog: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel(),
@@ -17,7 +16,6 @@ fun HomeScreen(
     HomeRuntimePermissionHost(
         uiState = uiState,
         viewModel = viewModel,
-        message = message,
         onNavigateToMap = onNavigateToMap,
         onNavigateToEventLog = onNavigateToEventLog,
     )

@@ -3,7 +3,6 @@
     <string name="app_name">FieldFlow</string>
     <string name="detected_identity">Tespit edildi: %1$s %2$s</string>
     <string name="activation_success">Aktivasyon başarıyla tamamlandı.</string>
-    <string name="app_activated_message">Hoş geldiniz! Güvenli şekilde giriş yaptınız.</string>
 
     <string name="topbar_scan">Kimlik Kartı Tarama</string>
     <string name="topbar_activation">Aktivasyon</string>

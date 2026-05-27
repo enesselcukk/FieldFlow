@@ -3,7 +3,6 @@
     <string name="app_name">FieldFlow</string>
     <string name="detected_identity">Detected: %1$s %2$s</string>
     <string name="activation_success">Activation completed successfully.</string>
-    <string name="app_activated_message">Welcome! You are logged in securely.</string>
 
     <string name="topbar_scan">ID Card Scan</string>
     <string name="topbar_activation">Activation</string>

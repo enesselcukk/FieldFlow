@@ -13,8 +13,9 @@ import com.example.utils.settings.SettingsBootstrapPreferences
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration as OsmdroidConfiguration
 import java.io.File
 import javax.inject.Inject
@@ -22,9 +23,14 @@ import javax.inject.Inject
 @HiltAndroidApp
 internal class FieldFlowApplication : Application(), Configuration.Provider {
 
-    @Inject lateinit var workerFactory: HiltWorkerFactory
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
 
-    @Inject lateinit var settingsRepository: SettingsRepository
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
+
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
@@ -40,8 +46,9 @@ internal class FieldFlowApplication : Application(), Configuration.Provider {
             network: Network,
             capabilities: NetworkCapabilities
         ) {
-            val hasInternet = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+            val hasInternet =
+                capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             if (hasInternet) {
                 SyncWorker.schedule(applicationContext)
             }
@@ -50,17 +57,16 @@ internal class FieldFlowApplication : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        runBlocking {
-            withContext(Dispatchers.IO) {
-                runCatching {
-                    val prefs = settingsRepository.preferences.first()
-                    SettingsBootstrapPreferences.writeAllSync(
-                        this@FieldFlowApplication,
-                        prefs,
-                    )
-                }
+        applicationScope.launch(Dispatchers.IO) {
+            runCatching {
+                val prefs = settingsRepository.preferences.first()
+                SettingsBootstrapPreferences.writeAllSync(
+                    this@FieldFlowApplication,
+                    prefs,
+                )
             }
         }
+
         OsmdroidConfiguration.getInstance().apply {
             userAgentValue = packageName
             val basePath = File(cacheDir, "osmdroid").apply { mkdirs() }
@@ -80,13 +86,15 @@ internal class FieldFlowApplication : Application(), Configuration.Provider {
             .build()
         try {
             connectivityManager.registerNetworkCallback(request, networkCallback)
-        } catch (_: Exception) { }
+        } catch (_: Exception) {
+        }
     }
 
     override fun onTerminate() {
         try {
             connectivityManager.unregisterNetworkCallback(networkCallback)
-        } catch (_: Exception) { }
+        } catch (_: Exception) {
+        }
         super.onTerminate()
     }
 }

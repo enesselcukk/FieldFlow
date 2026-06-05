@@ -21,11 +21,6 @@ import androidx.compose.ui.unit.dp
 import com.example.presentation.auth.AmbientFlowBackdrop
 import kotlinx.coroutines.delay
 
-private val ActivationMainHorizontalPadding = 24.dp
-private val ActivationMainTopPadding = 8.dp
-private val ActivationMainBottomPadding = 24.dp
-private val HeadlineFormGap = 26.dp
-
 @Composable
 internal fun ActivationCodeScaffold(
     activationInput: String,
@@ -45,7 +40,7 @@ internal fun ActivationCodeScaffold(
         Column(modifier = Modifier.fillMaxSize()) {
             ActivationCodeMainScrollPane(scrollState = scrollState) {
                 ActivationCodeHeadlineBlock(stageVisible = stageVisible)
-                Spacer(modifier = Modifier.height(HeadlineFormGap))
+                Spacer(modifier = Modifier.height(26.dp))
                 ActivationCodeFormCard(
                     stageVisible = stageVisible,
                     activationInput = activationInput,
@@ -73,8 +68,8 @@ private fun ColumnScope.ActivationCodeMainScrollPane(
             .weight(1f)
             .fillMaxWidth()
             .verticalScroll(scrollState)
-            .padding(horizontal = ActivationMainHorizontalPadding)
-            .padding(top = ActivationMainTopPadding, bottom = ActivationMainBottomPadding),
+            .padding(horizontal = 24.dp)
+            .padding(top = 8.dp, bottom = 24.dp),
     ) {
         content()
     }

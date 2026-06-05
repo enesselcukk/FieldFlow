@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.example.fieldflow"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.example.fieldflow"

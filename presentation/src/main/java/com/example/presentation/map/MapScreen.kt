@@ -95,9 +95,9 @@ fun MapScreen(
                 geofenceZones = uiState.geofenceZones,
                 recentEvents = uiState.recentGeofenceEvents,
                 onToggleTracking = viewModel::toggleTracking,
-                onStartPlayback = { viewModel.startPlayback() },
-                onStopPlayback = { viewModel.stopPlayback() },
-                onAddZoneClick = { viewModel.onAddZoneClick() },
+                onStartPlayback = viewModel::startPlayback,
+                onStopPlayback = viewModel::stopPlayback,
+                onAddZoneClick = viewModel::onAddZoneClick,
                 onDeleteZone = viewModel::deleteZone,
             )
         },
@@ -109,7 +109,7 @@ fun MapScreen(
             onDismiss = { viewModel.onDismissAddZone() },
             onConfirm = { name, lat, lng, radius ->
                 viewModel.saveZone(name, lat, lng, radius)
-            },
+            }
         )
     }
 }

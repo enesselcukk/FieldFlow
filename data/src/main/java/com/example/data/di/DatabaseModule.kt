@@ -25,6 +25,10 @@ import android.util.Log
 @InstallIn(SingletonComponent::class)
 internal object DatabaseModule {
 
+    private const val TAG = "DatabaseModule"
+    private const val LOG_MIGRATION_FAILED = "Migration reset or failed; continuing with empty encrypted DB if needed"
+    private const val DB_NAME = "fieldflow.db"
+
     @Provides
     @Singleton
     fun provideAppDatabase(
@@ -35,15 +39,11 @@ internal object DatabaseModule {
         try {
             SqlCipherDatabaseMigrator.migratePlainDatabaseIfNeeded(context, passphrase)
         } catch (e: SQLException) {
-            Log.e(
-                "DatabaseModule",
-                "Migration reset or failed; continuing with empty encrypted DB if needed",
-                e
-            )
+            Log.e(TAG, LOG_MIGRATION_FAILED, e)
         }
         SqlCipherDatabaseMigrator.ensureNativeLibraryLoaded()
         val factory = SupportOpenHelperFactory(passphrase.toByteArray(UTF_8))
-        return Room.databaseBuilder(context, AppDatabase::class.java, "fieldflow.db")
+        return Room.databaseBuilder(context, AppDatabase::class.java, DB_NAME)
             .openHelperFactory(factory)
             .addMigrations(
                 AppDatabase.MIGRATION_3_4,

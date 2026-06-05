@@ -31,7 +31,6 @@ import com.example.presentation.auth.idscan.components.IdScanConfirmContent
 import com.example.presentation.auth.idscan.ocr.captureAndRunOcr
 import com.example.presentation.constants.IdScanPhase
 import com.example.utils.CAMERA
-import com.example.utils.permissions.AppRuntimePermissions
 import com.example.utils.permissions.hasCameraPermission
 
 @Composable

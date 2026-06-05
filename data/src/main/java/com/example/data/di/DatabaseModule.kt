@@ -19,6 +19,7 @@ import dagger.hilt.components.SingletonComponent
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import javax.inject.Singleton
 import kotlin.text.Charsets.UTF_8
+import android.util.Log
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -34,13 +35,21 @@ internal object DatabaseModule {
         try {
             SqlCipherDatabaseMigrator.migratePlainDatabaseIfNeeded(context, passphrase)
         } catch (e: SQLException) {
-            android.util.Log.e("DatabaseModule", "Migration reset or failed; continuing with empty encrypted DB if needed", e)
+            Log.e(
+                "DatabaseModule",
+                "Migration reset or failed; continuing with empty encrypted DB if needed",
+                e
+            )
         }
         SqlCipherDatabaseMigrator.ensureNativeLibraryLoaded()
         val factory = SupportOpenHelperFactory(passphrase.toByteArray(UTF_8))
         return Room.databaseBuilder(context, AppDatabase::class.java, "fieldflow.db")
             .openHelperFactory(factory)
-            .addMigrations(AppDatabase.MIGRATION_3_4, AppDatabase.MIGRATION_4_5, AppDatabase.MIGRATION_5_6)
+            .addMigrations(
+                AppDatabase.MIGRATION_3_4,
+                AppDatabase.MIGRATION_4_5,
+                AppDatabase.MIGRATION_5_6
+            )
             .fallbackToDestructiveMigration(true)
             .build()
     }

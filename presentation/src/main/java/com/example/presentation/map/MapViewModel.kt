@@ -27,9 +27,9 @@ import org.osmdroid.util.GeoPoint
 
 @HiltViewModel
 class MapViewModel @Inject constructor(
-    private val observeRecentLocations: ObserveRecentLocationsUseCase,
-    private val observeGeofenceZones: ObserveGeofenceZonesUseCase,
-    private val observeRecentGeofenceEvents: ObserveRecentGeofenceEventsUseCase,
+    observeRecentLocations: ObserveRecentLocationsUseCase,
+    observeGeofenceZones: ObserveGeofenceZonesUseCase,
+    observeRecentGeofenceEvents: ObserveRecentGeofenceEventsUseCase,
     private val saveGeofenceZone: SaveGeofenceZoneUseCase,
     private val deleteGeofenceZone: DeleteGeofenceZoneUseCase,
     private val trackingRepository: TrackingRepository

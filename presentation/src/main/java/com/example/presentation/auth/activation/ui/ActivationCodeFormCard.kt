@@ -36,10 +36,6 @@ import com.example.presentation.R
 import com.example.presentation.auth.activation.components.ActivationEnterRevealSection
 import com.example.presentation.auth.idscan.components.outlinedFieldColorsStrongLabel
 
-private val CardCornerShape = RoundedCornerShape(28.dp)
-private val FieldCornerShape = RoundedCornerShape(18.dp)
-private val GemIconSize = 32.dp
-
 @Composable
 internal fun ActivationCodeFormCard(
     stageVisible: Boolean,
@@ -70,7 +66,7 @@ internal fun ActivationCodeFormCard(
 private fun ActivationCodeFilledCardSurface(content: @Composable () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = CardCornerShape,
+        shape = RoundedCornerShape(28.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         tonalElevation = 4.dp,
         shadowElevation = 0.dp,
@@ -100,7 +96,7 @@ private fun ActivationFormKeyOrb() {
             Icon(
                 imageVector = Icons.Outlined.VpnKey,
                 contentDescription = null,
-                modifier = Modifier.size(GemIconSize),
+                modifier = Modifier.size(32.dp),
                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
             )
         }
@@ -120,7 +116,7 @@ private fun ActivationCodeEntryField(
         modifier = Modifier.fillMaxWidth(),
         label = { Text(stringResource(R.string.activation_code_label)) },
         singleLine = true,
-        shape = FieldCornerShape,
+        shape = RoundedCornerShape(18.dp),
         textStyle = MaterialTheme.typography.titleLarge.copy(
             letterSpacing = 4.sp,
             fontWeight = FontWeight.Medium,

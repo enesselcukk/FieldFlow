@@ -54,18 +54,15 @@ internal fun FieldFlowApp(
         AppTheme.SYSTEM -> systemInDarkTheme
     }
 
-    val localizedContext = remember(activity, resolvedLanguage) {
-        val configuration = Configuration(activity.resources.configuration).apply {
-            setLocale(Locale.forLanguageTag(resolvedLanguage.code))
-        }
-        activity.createConfigurationContext(configuration)
+    val baseConfiguration = LocalConfiguration.current
+    val localizedContext = remember(activity, resolvedLanguage, baseConfiguration) {
+        activity.createConfigurationContext(
+            Configuration(baseConfiguration).apply {
+                setLocale(Locale.forLanguageTag(resolvedLanguage.code))
+            }
+        )
     }
-    val localizedConfiguration = remember(localizedContext) {
-        Configuration(localizedContext.resources.configuration)
-    }
-    val localizedResources = remember(localizedContext) {
-        localizedContext.resources
-    }
+    val localizedConfiguration = localizedContext.resources.configuration
 
     FieldFlowTheme(
         darkTheme = isDarkTheme,
@@ -73,7 +70,7 @@ internal fun FieldFlowApp(
     ) {
         CompositionLocalProvider(
             LocalConfiguration provides localizedConfiguration,
-            LocalResources provides localizedResources,
+            LocalResources provides localizedContext.resources,
         ) {
             Box(Modifier.fillMaxSize()) {
                 MainNavigationHost(

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,7 +26,9 @@ import com.example.fieldflow.ui.theme.FieldFlowTheme
 import com.example.presentation.notification.NotificationListViewModel
 import com.example.presentation.settings.SettingsViewModel
 import com.example.utils.security.RootDetector
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.withContext
 import java.util.Locale
 
 @Composable
@@ -44,7 +47,12 @@ internal fun FieldFlowApp(
     val resolvedTheme = prefs.theme
 
     val systemInDarkTheme = isSystemInDarkTheme()
-    val deviceCompromised = remember { RootDetector.isDeviceCompromised() }
+    var deviceCompromised by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        deviceCompromised = withContext(Dispatchers.IO) {
+            RootDetector.isDeviceCompromised()
+        }
+    }
     var rootSecurityAcknowledged by rememberSaveable { mutableStateOf(false) }
     val showRootSecurityDialog = deviceCompromised && !rootSecurityAcknowledged
 

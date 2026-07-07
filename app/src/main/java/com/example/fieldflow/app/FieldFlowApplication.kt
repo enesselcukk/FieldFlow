@@ -29,7 +29,7 @@ internal class FieldFlowApplication : Application(), Configuration.Provider {
     @Inject
     lateinit var settingsRepository: SettingsRepository
 
-    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
 
     override val workManagerConfiguration: Configuration
@@ -57,11 +57,11 @@ internal class FieldFlowApplication : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        applicationScope.launch(Dispatchers.IO) {
+        applicationScope.launch {
             runCatching {
                 val prefs = settingsRepository.preferences.first()
                 SettingsBootstrapPreferences.writeAllSync(
-                    this@FieldFlowApplication,
+                    applicationContext,
                     prefs,
                 )
             }

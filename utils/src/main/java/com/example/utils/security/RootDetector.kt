@@ -5,8 +5,8 @@ import java.io.File
 
 class RootDetector internal constructor(
     private val fileExists: (String) -> Boolean = { File(it).exists() },
-    private val buildTags: String = Build.TAGS,
-    private val buildType: String = Build.TYPE,
+    private val buildTags: String = Build.TAGS ?: "",
+    private val buildType: String = Build.TYPE ?: "",
     private val debuggableProperty: () -> String? = { readRoDebuggable() },
 ) {
 
@@ -21,7 +21,7 @@ class RootDetector internal constructor(
     private fun isNonRetailBuildType(): Boolean =
         buildType == "eng" || buildType == "userdebug"
 
-    private fun isRoDebuggable(): Boolean = debuggableProperty()?.trim() == "1"
+    private fun isRoDebuggable(): Boolean = debuggableProperty() == "1"
 
     private fun hasSuOrMagiskArtifacts(): Boolean =
         CompromiseIndicatorPaths.any { fileExists(it) }

@@ -7,6 +7,7 @@ import com.example.domain.model.RuntimePermissions
 import com.example.domain.repository.StatusRepository
 import com.example.domain.repository.TrackingRepository
 import com.example.presentation.home.model.HomeUiState
+import com.example.utils.STEP_TIMEOUT_MILES
 import com.example.utils.permissions.canPostNotifications
 import com.example.utils.permissions.hasForegroundLocationPermission
 import com.example.utils.permissions.snapshotRuntimePermissions
@@ -49,7 +50,7 @@ class HomeViewModel @Inject constructor(
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
+        started = SharingStarted.WhileSubscribed(STEP_TIMEOUT_MILES),
         initialValue = bootstrapPermissions.toPartialHomeUiState(),
     )
 

@@ -25,6 +25,7 @@ import com.example.fieldflow.constants.EXTRA_NOTIF_TYPE
 import com.example.fieldflow.constants.NAV_HOME
 import com.example.fieldflow.constants.NAV_NOTIFICATION_DETAIL
 import com.example.presentation.notification.NotificationListViewModel
+import com.example.utils.STEP_TIMEOUT_MILES
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -55,7 +56,7 @@ internal fun MainNavigationHost(
     val isActivated by remember {
         activationStore.isActivated.stateIn(
             scope = scope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.WhileSubscribed(STEP_TIMEOUT_MILES),
             initialValue = false
         )
     }.collectAsStateWithLifecycle()

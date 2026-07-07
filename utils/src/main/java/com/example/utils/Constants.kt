@@ -12,3 +12,4 @@ const val KEY_THEME_NAME = "app_theme_name"
 const val KEY_LOCATION_INTERVAL = "location_interval_seconds"
 const val POST_NOTIFICATIONS = "android.permission.POST_NOTIFICATIONS"
 const val CAMERA: String = Manifest.permission.CAMERA
+const val STEP_TIMEOUT_MILES = 500L

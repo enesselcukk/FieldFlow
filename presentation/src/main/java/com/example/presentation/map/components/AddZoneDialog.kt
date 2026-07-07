@@ -28,18 +28,16 @@ fun AddZoneDialog(
     onConfirm: (name: String, lat: Double, lng: Double, radiusMeters: Double) -> Unit,
 ) {
     var name by rememberSaveable { mutableStateOf("") }
-    var lat by rememberSaveable {
-        mutableStateOf(currentLocation?.latitude?.toString() ?: "")
-    }
+    var lat by rememberSaveable { mutableStateOf(currentLocation?.latitude?.toString() ?: "") }
     var lng by rememberSaveable {
         mutableStateOf(currentLocation?.longitude?.toString() ?: "")
     }
     var radius by rememberSaveable { mutableStateOf("200") }
 
     val isValid = name.isNotBlank() &&
-        lat.toDoubleOrNull() != null &&
-        lng.toDoubleOrNull() != null &&
-        (radius.toDoubleOrNull() ?: 0.0) > 0
+            lat.toDoubleOrNull() != null &&
+            lng.toDoubleOrNull() != null &&
+            (radius.toDoubleOrNull() ?: 0.0) > 0
 
     AlertDialog(
         onDismissRequest = onDismiss,

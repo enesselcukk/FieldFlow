@@ -46,7 +46,6 @@ internal fun FieldFlowApp(
     val resolvedLanguage = prefs.language
     val resolvedTheme = prefs.theme
 
-    val systemInDarkTheme = isSystemInDarkTheme()
     var deviceCompromised by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         deviceCompromised = withContext(Dispatchers.IO) {
@@ -59,7 +58,7 @@ internal fun FieldFlowApp(
     val isDarkTheme = when (resolvedTheme) {
         AppTheme.LIGHT -> false
         AppTheme.DARK -> true
-        AppTheme.SYSTEM -> systemInDarkTheme
+        AppTheme.SYSTEM -> isSystemInDarkTheme()
     }
 
     val baseConfiguration = LocalConfiguration.current
@@ -70,14 +69,13 @@ internal fun FieldFlowApp(
             }
         )
     }
-    val localizedConfiguration = localizedContext.resources.configuration
 
     FieldFlowTheme(
         darkTheme = isDarkTheme,
         dynamicColor = resolvedTheme == AppTheme.SYSTEM
     ) {
         CompositionLocalProvider(
-            LocalConfiguration provides localizedConfiguration,
+            LocalConfiguration provides localizedContext.resources.configuration,
             LocalResources provides localizedContext.resources,
         ) {
             Box(Modifier.fillMaxSize()) {

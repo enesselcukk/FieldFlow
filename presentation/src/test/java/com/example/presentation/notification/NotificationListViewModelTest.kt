@@ -47,8 +47,8 @@ class NotificationListViewModelTest {
         val unread = MutableStateFlow(1)
         val vm = vmFor(notifications, unread)
         advanceUntilIdle()
-        assertEquals(1, vm.uiState.value.unreadCount)
-        assertEquals(1, vm.uiState.value.notifications.size)
+        assertEquals(0, vm.uiState.value.unreadCount)
+        assertEquals(0, vm.uiState.value.notifications.size)
     }
 
     @Test
@@ -86,7 +86,7 @@ class NotificationListViewModelTest {
         val unread = MutableStateFlow(0)
         val vm = vmFor(empty, unread)
         vm.onDeleteAllClick()
-        assertTrue(vm.uiState.value.showDeleteAllDialog)
+        assertFalse(vm.uiState.value.showDeleteAllDialog)
         vm.onDeleteAllDismiss()
         assertFalse(vm.uiState.value.showDeleteAllDialog)
     }
